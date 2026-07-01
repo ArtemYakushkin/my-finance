@@ -1,9 +1,11 @@
 import { Text, View } from "react-native";
 
-export default function TabOneScreen() {
+const Welcome = () => {
   return (
     <View>
-      <Text>Tab One</Text>
+      <Text>welcome</Text>
     </View>
   );
-}
+};
+
+export default Welcome;

@@ -1,56 +1,28 @@
-import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import { Slot, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  // Стейт авторизации (замените на вашу бэкенд-проверку в будущем)
+  // false — пользователь гость (покажет экран login)
+  // true — пользователь авторизован (покажет экран index с табами)
+  const isAuthenticated = false;
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    // Проверяем, находится ли пользователь сейчас в группе авторизации
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // Если НЕ авторизован и НЕ в группе auth -> отправляем на логин
+      router.replace("/(auth)/welcome");
+    } else if (isAuthenticated && inAuthGroup) {
+      // Если АВТОРИЗОВАН и находится на экране логина -> отправляем в приложение
+      router.replace("/(tabs)");
     }
-  }, [loaded]);
+  }, [isAuthenticated, segments]);
 
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
-  );
+  // Slot просто рендерит текущий активный экран в зависимости от роута
+  return <Slot />;
 }
