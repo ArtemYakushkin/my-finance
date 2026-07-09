@@ -472,6 +472,7 @@ export const globalStyles = StyleSheet.create({
 		borderTopLeftRadius: 30,
 		borderTopRightRadius: 30,
 		paddingBottom: 60,
+		paddingHorizontal: 10,
 	},
 	calcHandle: {
 		width: 40,

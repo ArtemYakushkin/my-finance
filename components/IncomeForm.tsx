@@ -194,7 +194,7 @@ const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
 				</View>
 			</View>
 
-			<View style={{ gap: 10, paddingHorizontal: 5, marginBottom: 50 }}>
+			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Опис
 				</Typo>

@@ -105,7 +105,6 @@ const AddCategoryModal = () => {
 											onPress={() => setCategory({ ...category, group: groupItem.value })}
 											style={{
 												flex: 1,
-												backgroundColor: isActive ? colors.neutral700 : 'transparent',
 											}}
 										>
 											<Typo

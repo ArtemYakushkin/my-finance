@@ -29,17 +29,16 @@ const HomeCard = () => {
 		loading: walletLoading,
 	} = useFetchData<WalletType>(
 		'wallets',
-		user?.uid
-			? [where('uid', '==', user?.uid), orderBy('created', 'desc')]
-			: [],
+		user?.uid ? [where('uid', '==', user?.uid), orderBy('created', 'desc')] : [],
 	);
 
 	const getTotals = () => {
 		return wallets.reduce(
 			(totals: any, item: WalletType) => {
-				totals.balance = totals.balance + Number(item.amount);
-				totals.income = totals.income + Number(item.totalIncome);
-				totals.expenses = totals.expenses + Number(item.totalExpenses);
+				// Используем оператор || 0 на случай, если в базе нет этих полей
+				totals.balance = totals.balance + Number(item.amount || 0);
+				totals.income = totals.income + Number(item.totalIncome || 0);
+				totals.expenses = totals.expenses + Number(item.totalExpenses || 0);
 				return totals;
 			},
 			{
@@ -59,25 +58,14 @@ const HomeCard = () => {
 			<View style={globalStyles.containerCard}>
 				<View>
 					<View style={globalStyles.totalBalanceCard}>
-						<Typo
-							size={17}
-							fontWeight={500}
-							color={colors.neutral300}
-						>
+						<Typo size={17} fontWeight={500} color={colors.neutral300}>
 							Загальний баланс
 						</Typo>
 
-						<Icons.DotsThreeOutline
-							size={23}
-							color={colors.white}
-							weight="fill"
-						/>
+						<Icons.DotsThreeOutline size={23} color={colors.white} weight="fill" />
 					</View>
 					<Typo size={30} fontWeight={'bold'} color={colors.white}>
-						{currencySymbol}{' '}
-						{walletLoading
-							? '----'
-							: getTotals()?.balance?.toFixed(2)}
+						{currencySymbol} {walletLoading ? '----' : getTotals()?.balance?.toFixed(2)}
 					</Typo>
 				</View>
 
@@ -85,30 +73,15 @@ const HomeCard = () => {
 					<View style={{ gap: 5 }}>
 						<View style={globalStyles.incomeExpenseCard}>
 							<View style={globalStyles.statsIconCard}>
-								<Icons.ArrowUp
-									size={15}
-									color={colors.black}
-									weight="bold"
-								/>
+								<Icons.ArrowUp size={15} color={colors.black} weight="bold" />
 							</View>
-							<Typo
-								size={16}
-								fontWeight={500}
-								color={colors.neutral300}
-							>
+							<Typo size={16} fontWeight={500} color={colors.neutral300}>
 								Дохід
 							</Typo>
 						</View>
 						<View>
-							<Typo
-								size={17}
-								fontWeight={600}
-								color={colors.green}
-							>
-								{currencySymbol}{' '}
-								{walletLoading
-									? '----'
-									: getTotals()?.income?.toFixed(2)}
+							<Typo size={17} fontWeight={600} color={colors.green}>
+								{currencySymbol} {walletLoading ? '----' : getTotals()?.income?.toFixed(2)}
 							</Typo>
 						</View>
 					</View>
@@ -116,30 +89,15 @@ const HomeCard = () => {
 					<View style={{ gap: 5 }}>
 						<View style={globalStyles.incomeExpenseCard}>
 							<View style={globalStyles.statsIconCard}>
-								<Icons.ArrowDown
-									size={15}
-									color={colors.black}
-									weight="bold"
-								/>
+								<Icons.ArrowDown size={15} color={colors.black} weight="bold" />
 							</View>
-							<Typo
-								size={16}
-								fontWeight={500}
-								color={colors.neutral300}
-							>
+							<Typo size={16} fontWeight={500} color={colors.neutral300}>
 								Витрати
 							</Typo>
 						</View>
 						<View>
-							<Typo
-								size={17}
-								fontWeight={600}
-								color={colors.rose}
-							>
-								{currencySymbol}{' '}
-								{walletLoading
-									? '----'
-									: getTotals()?.expenses?.toFixed(2)}
+							<Typo size={17} fontWeight={600} color={colors.rose}>
+								{currencySymbol} {walletLoading ? '----' : getTotals()?.expenses?.toFixed(2)}
 							</Typo>
 						</View>
 					</View>

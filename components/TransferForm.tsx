@@ -6,6 +6,7 @@ import { SHADOW_DROPDOWN, SHADOW_INPUT } from '@/constants/shadow';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { collection, doc, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { RefObject, useImperativeHandle, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
@@ -28,6 +29,8 @@ type Props = {
 
 const TransferForm = ({ wallets, setLoading, ref }: Props) => {
 	const { user } = useAuth();
+	const router = useRouter();
+
 	const [amount, setAmount] = useState<number>(0);
 	const [fromWallet, setFromWallet] = useState<string>('');
 	const [toWallet, setToWallet] = useState<string>('');
@@ -97,7 +100,7 @@ const TransferForm = ({ wallets, setLoading, ref }: Props) => {
 			setToWallet('');
 			setDescription('');
 
-			Alert.alert('Успішно', 'Переказ виконано успішно!');
+			router.back();
 		} catch (error: any) {
 			console.error('Помилка при переказі: ', error);
 			Alert.alert('Помилка', error.message || 'Не вдалося виконати переказ');
@@ -245,7 +248,7 @@ const TransferForm = ({ wallets, setLoading, ref }: Props) => {
 				</View>
 			</View>
 
-			<View style={{ gap: 10, paddingHorizontal: 5, marginBottom: 50 }}>
+			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Опис
 				</Typo>
