@@ -9,7 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
-import { RefObject, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { Alert, Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Shadow } from 'react-native-shadow-2';
@@ -24,7 +24,6 @@ const categoryGroups = [
 	{ label: 'Резерв', value: 'saving', color: '#a3e635', icon: Icons.PiggyBank },
 ];
 
-// Тип для категории, приходящей из Firestore / Стора
 type CategoryItem = {
 	label: string;
 	value: string;
@@ -34,25 +33,62 @@ type CategoryItem = {
 
 type Props = {
 	wallets: { label: string; value: string }[];
-	categories: CategoryItem[]; // Передаем список всех категорий пользователя из родителя
+	categories: CategoryItem[];
 	setLoading: (loading: boolean) => void;
-	ref: RefObject<FormRefActions | null>;
+	oldData?: any;
 };
 
-const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
+// Используем forwardRef для безопасной передачи методов формы наружу
+const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [], setLoading, oldData }, ref) => {
 	const { user } = useAuth();
 	const router = useRouter();
 
-	const [walletId, setWalletId] = useState('');
-	const [selectedGroup, setSelectedGroup] = useState('');
-	const [subCategory, setSubCategory] = useState('');
+	const [walletId, setWalletId] = useState(oldData?.walletId || '');
+	const [selectedGroup, setSelectedGroup] = useState(oldData?.categoryGroup || '');
+	const [subCategory, setSubCategory] = useState(oldData?.category || '');
 	const [date, setDate] = useState(new Date());
-	const [amount, setAmount] = useState<number>(0);
-	const [description, setDescription] = useState('');
+	const [amount, setAmount] = useState<number>(oldData?.amount || 0);
+	const [description, setDescription] = useState(oldData?.description || '');
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showCalcModal, setShowCalcModal] = useState(false);
 
-	// Фильтруем категории динамически по выбранной группе (needs, desires, saving) и типу expense
+	const resetForm = () => {
+		setWalletId('');
+		setSelectedGroup('');
+		setSubCategory('');
+		setDate(new Date());
+		setAmount(0);
+		setDescription('');
+	};
+
+	// СИНХРОНИЗАЦИЯ СТЕЙТА ПРИ ИЗМЕНЕНИИ ВХОДЯЩИХ ДАННЫХ (oldData)
+	useEffect(() => {
+		if (oldData) {
+			setWalletId(oldData.walletId || '');
+			setSelectedGroup(oldData.categoryGroup || '');
+			setSubCategory(oldData.category || '');
+			setAmount(Number(oldData.amount || 0));
+			setDescription(oldData.description || '');
+
+			if (oldData.date) {
+				if (oldData.date.seconds) {
+					setDate(new Date(oldData.date.seconds * 1000));
+				} else {
+					setDate(new Date(oldData.date));
+				}
+			} else {
+				setDate(new Date());
+			}
+		} else {
+			setWalletId('');
+			setSelectedGroup('');
+			setSubCategory('');
+			setDate(new Date());
+			setAmount(0);
+			setDescription('');
+		}
+	}, [oldData]);
+
 	const currentSubCategories = categories.filter((cat) => cat.group === selectedGroup && cat.type === 'expense');
 
 	useImperativeHandle(ref, () => ({
@@ -61,13 +97,12 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 		},
 	}));
 
-	// Функция перенаправления на модалку создания категории
 	const handleNavigateToAddCategory = () => {
 		router.push({
 			pathname: '/(modals)/addCategoryModal',
 			params: {
 				type: 'expense',
-				group: selectedGroup, // Передаем текущую группу, чтобы модалка сразу знала, куда добавлять
+				group: selectedGroup,
 			},
 		});
 	};
@@ -87,36 +122,46 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 		}
 	};
 
-	const resetForm = () => {
-		setWalletId('');
-		setSelectedGroup('');
-		setSubCategory('');
-		setDate(new Date());
-		setAmount(0);
-		setDescription('');
-	};
-
 	const handleSaveExpense = async () => {
 		if (!user?.uid) return;
 		if (!walletId) return Alert.alert('Помилка', 'Виберіть гаманець списання');
-		if (!selectedGroup) return Alert.alert('Помилка', 'Виберіть групу категорий');
+		if (!selectedGroup) return Alert.alert('Помилка', 'Виберіть групу категорій');
 		if (!subCategory) return Alert.alert('Помилка', 'Виберіть або створіть підкатегорію');
 		if (amount <= 0) return Alert.alert('Помилка', 'Сума повинна бути більша за 0');
 
 		try {
 			setLoading(true);
-			await transactionService.createTransaction({
-				uid: user.uid,
-				type: 'expense',
-				amount,
-				walletId,
-				categoryGroup: selectedGroup,
-				category: subCategory,
-				date,
-				description: description.trim(),
-			});
+
+			if (oldData?.id) {
+				await transactionService.updateTransaction(
+					oldData.id,
+					{
+						uid: user.uid,
+						type: 'expense',
+						amount,
+						walletId,
+						categoryGroup: selectedGroup,
+						category: subCategory,
+						date,
+						description: description.trim(),
+					},
+					oldData,
+				);
+			} else {
+				await transactionService.createTransaction({
+					uid: user.uid,
+					type: 'expense',
+					amount,
+					walletId,
+					categoryGroup: selectedGroup,
+					category: subCategory,
+					date,
+					description: description.trim(),
+				});
+			}
+
 			resetForm();
-			router.back();
+			router.replace('/(tabs)');
 		} catch (error: any) {
 			Alert.alert('Помилка', error.message || 'Щось пішло не так');
 		} finally {
@@ -126,7 +171,7 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 
 	return (
 		<View style={{ gap: 20, paddingBottom: 40 }}>
-			{/* Выбор кошелька */}
+			{/* Вибір кошелька */}
 			<View style={{ gap: 10 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 					Гаманець
@@ -181,7 +226,7 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 				</View>
 			</View>
 
-			{/* Выбор группы категорий */}
+			{/* Вибір групи категорій */}
 			<View style={{ gap: 10 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 					Група категорій
@@ -211,7 +256,7 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 				</View>
 			</View>
 
-			{/* Выбор и создание подкатегории */}
+			{/* Вибір і створення підкатегорії */}
 			{selectedGroup && (
 				<View style={{ gap: 10 }}>
 					<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
@@ -289,7 +334,7 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 				</View>
 			)}
 
-			{/* Блок даты */}
+			{/* Блок дати */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Дата
@@ -330,7 +375,7 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 				)}
 			</View>
 
-			{/* Блок ввода суммы */}
+			{/* Блок введення суми */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Сума
@@ -348,7 +393,7 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 				</View>
 			</View>
 
-			{/* Блок описания */}
+			{/* Блок опису */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Опис
@@ -367,6 +412,8 @@ const ExpenseForm = ({ wallets, categories = [], setLoading, ref }: Props) => {
 			/>
 		</View>
 	);
-};
+});
+
+ExpenseForm.displayName = 'ExpenseForm';
 
 export default ExpenseForm;

@@ -8,7 +8,7 @@ import { transactionService } from '@/services/transactionService';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { RefObject, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { Alert, Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Shadow } from 'react-native-shadow-2';
@@ -19,22 +19,53 @@ import Typo from './Typo';
 type Props = {
 	wallets: { label: string; value: string }[];
 	setLoading: (loading: boolean) => void;
-	ref: RefObject<FormRefActions | null>; // Передаем реф как обычный проп
+	oldData?: any;
 };
 
-const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
+const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, oldData }, ref) => {
 	const { user } = useAuth();
 	const router = useRouter();
 
-	// Внутренние стейты формы доходов
-	const [walletId, setWalletId] = useState('');
+	// Инициализируем стейт сразу из oldData, если они есть
+	const [walletId, setWalletId] = useState(oldData?.walletId || '');
 	const [date, setDate] = useState(new Date());
-	const [amount, setAmount] = useState<number>(0);
-	const [description, setDescription] = useState('');
+	const [amount, setAmount] = useState<number>(oldData?.amount || 0);
+	const [description, setDescription] = useState(oldData?.description || '');
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showCalcModal, setShowCalcModal] = useState(false);
 
-	// Прокидываем метод submit в родительский компонент transaction.tsx
+	const resetForm = () => {
+		setWalletId('');
+		setDate(new Date());
+		setAmount(0);
+		setDescription('');
+	};
+
+	// Синхронизация стейта при редактировании или создании новой транзакции
+	useEffect(() => {
+		if (oldData) {
+			setWalletId(oldData.walletId || '');
+			setAmount(Number(oldData.amount || 0));
+			setDescription(oldData.description || '');
+
+			if (oldData.date) {
+				if (oldData.date.seconds) {
+					setDate(new Date(oldData.date.seconds * 1000));
+				} else {
+					setDate(new Date(oldData.date));
+				}
+			} else {
+				setDate(new Date());
+			}
+		} else {
+			setWalletId('');
+			setDate(new Date());
+			setAmount(0);
+			setDescription('');
+		}
+	}, [oldData]);
+
+	// Безопасное прокидывание метода submit наружу через useImperativeHandle
 	useImperativeHandle(ref, () => ({
 		submit: () => {
 			handleSaveIncome();
@@ -50,13 +81,6 @@ const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
 		}
 	};
 
-	const resetForm = () => {
-		setWalletId('');
-		setDate(new Date());
-		setAmount(0);
-		setDescription('');
-	};
-
 	const handleSaveIncome = async () => {
 		if (!user?.uid) return;
 		if (!walletId) return Alert.alert('Помилка', 'Виберіть гаманець зарахування');
@@ -64,16 +88,24 @@ const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
 
 		try {
 			setLoading(true);
-			await transactionService.createTransaction({
+
+			const transactionPayload = {
 				uid: user.uid,
-				type: 'income', // Важно: тип теперь income!
+				type: 'income' as const,
 				amount,
 				walletId,
 				date,
 				description: description.trim(),
-			});
+			};
+
+			if (oldData?.id) {
+				await transactionService.updateTransaction(oldData.id, transactionPayload, oldData);
+			} else {
+				await transactionService.createTransaction(transactionPayload);
+			}
+
 			resetForm();
-			router.back();
+			router.replace('/(tabs)');
 		} catch (error: any) {
 			Alert.alert('Помилка', error.message || 'Щось пішло не так');
 		} finally {
@@ -83,6 +115,7 @@ const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
 
 	return (
 		<View style={{ gap: 20, paddingBottom: 40 }}>
+			{/* Гаманець зарахування */}
 			<View style={{ gap: 10 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 					Гаманець зарахування
@@ -137,6 +170,7 @@ const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
 				</View>
 			</View>
 
+			{/* Дата */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Дата
@@ -177,6 +211,7 @@ const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
 				)}
 			</View>
 
+			{/* Сума */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Сума
@@ -194,6 +229,7 @@ const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
 				</View>
 			</View>
 
+			{/* Опис */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Опис
@@ -212,6 +248,8 @@ const IncomeForm = ({ wallets, setLoading, ref }: Props) => {
 			/>
 		</View>
 	);
-};
+});
+
+IncomeForm.displayName = 'IncomeForm';
 
 export default IncomeForm;

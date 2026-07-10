@@ -9,6 +9,7 @@ import { db } from '@/config/firebase';
 import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, View } from 'react-native';
@@ -45,9 +46,48 @@ const transactionColors: Record<string, string> = {
 
 const Transaction = () => {
 	const { user } = useAuth();
-	const [activeType, setActiveType] = useState<string>('expense');
-	const [loading, setLoading] = useState<boolean>(false);
+	const navigation = useNavigation();
 
+	// Получаем параметры роута
+	const params = useLocalSearchParams<{ editData?: string }>();
+
+	// Храним спарсенные данные в локальном стейте, чтобы иметь возможность его обнулить
+	const [parsedOldData, setParsedOldData] = useState<any>(null);
+	const [activeType, setActiveType] = useState<string>('expense');
+
+	// Эффект для безопасного парсинга входящих параметров редактирования
+	useEffect(() => {
+		if (params?.editData) {
+			try {
+				const data = JSON.parse(params.editData);
+				setParsedOldData(data);
+				if (data?.type) {
+					setActiveType(data.type);
+				}
+			} catch (e) {
+				console.error('Помилка парсингу editData:', e);
+				setParsedOldData(null);
+			}
+		} else {
+			setParsedOldData(null);
+			setActiveType('expense');
+		}
+	}, [params?.editData]);
+
+	const isEditing = !!parsedOldData;
+
+	// СБРОС ПАРАМЕТРОВ ПРИ УХОДЕ С ЭКРАНА (Очищает URL от editData)
+	useEffect(() => {
+		const unsubscribe = navigation.addListener('blur', () => {
+			setParsedOldData(null);
+			setActiveType('expense');
+			// Принудительно чистим параметры в самом роутере Expo, чтобы при следующем входе стек был чист
+			navigation.setParams({ editData: undefined } as any);
+		});
+		return unsubscribe;
+	}, [navigation]);
+
+	const [loading, setLoading] = useState<boolean>(false);
 	const [wallets, setWallets] = useState<WalletType[]>([]);
 	const [walletsLoading, setWalletsLoading] = useState<boolean>(true);
 	const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -55,6 +95,7 @@ const Transaction = () => {
 
 	const formRef = useRef<FormRefActions>(null);
 
+	// Подписка на кошельки
 	useEffect(() => {
 		if (!user?.uid) return;
 		const q = query(collection(db, 'wallets'), where('uid', '==', user.uid));
@@ -82,6 +123,7 @@ const Transaction = () => {
 		return () => unsubscribe();
 	}, [user?.uid]);
 
+	// Подписка на категории
 	useEffect(() => {
 		if (!user?.uid) return;
 		const q = query(collection(db, 'categories'), where('uid', '==', user.uid));
@@ -126,7 +168,6 @@ const Transaction = () => {
 		if (walletsLoading || categoriesLoading) {
 			return <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />;
 		}
-
 		switch (activeType) {
 			case 'expense':
 				return (
@@ -135,12 +176,27 @@ const Transaction = () => {
 						categories={categories}
 						wallets={dropdownWallets}
 						setLoading={setLoading}
+						oldData={parsedOldData}
 					/>
 				);
 			case 'income':
-				return <IncomeForm ref={formRef} wallets={dropdownWallets} setLoading={setLoading} />;
+				return (
+					<IncomeForm
+						ref={formRef}
+						wallets={dropdownWallets}
+						setLoading={setLoading}
+						oldData={parsedOldData}
+					/>
+				);
 			case 'transfer':
-				return <TransferForm ref={formRef} wallets={dropdownWallets} setLoading={setLoading} />;
+				return (
+					<TransferForm
+						ref={formRef}
+						wallets={dropdownWallets}
+						setLoading={setLoading}
+						oldData={parsedOldData}
+					/>
+				);
 			default:
 				return null;
 		}
@@ -149,7 +205,7 @@ const Transaction = () => {
 	return (
 		<ScreenWrapper>
 			<View style={[globalStyles.container, { flex: 1 }]}>
-				<Header title={'Нова транзакція'} />
+				<Header title={isEditing ? 'Редагувати транзакцію' : 'Нова транзакція'} />
 
 				<ScrollView
 					style={{ flex: 1 }}
@@ -158,33 +214,35 @@ const Transaction = () => {
 					keyboardShouldPersistTaps="handled"
 					automaticallyAdjustKeyboardInsets={true}
 				>
-					<View style={{ gap: 10, marginBottom: 15 }}>
-						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
-							Тип
-						</Typo>
-						<View style={globalStyles.modalBtnWrap}>
-							{transactionTypes.map((item) => {
-								const isActive = activeType === item.value;
-								const activeTextColor = transactionColors[item.value] || colors.white;
+					{!isEditing && (
+						<View style={{ gap: 10, marginBottom: 15 }}>
+							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
+								Тип
+							</Typo>
+							<View style={globalStyles.modalBtnWrap}>
+								{transactionTypes.map((item) => {
+									const isActive = activeType === item.value;
+									const activeTextColor = transactionColors[item.value] || colors.white;
 
-								return (
-									<Button
-										key={item.value}
-										onPress={() => setActiveType(item.value)}
-										style={{ flex: 1 }}
-									>
-										<Typo
-											size={16}
-											fontWeight={isActive ? '700' : '500'}
-											color={isActive ? activeTextColor : colors.neutral400}
+									return (
+										<Button
+											key={item.value}
+											onPress={() => setActiveType(item.value)}
+											style={{ flex: 1 }}
 										>
-											{item.label}
-										</Typo>
-									</Button>
-								);
-							})}
+											<Typo
+												size={16}
+												fontWeight={isActive ? '700' : '500'}
+												color={isActive ? activeTextColor : colors.neutral400}
+											>
+												{item.label}
+											</Typo>
+										</Button>
+									);
+								})}
+							</View>
 						</View>
-					</View>
+					)}
 
 					<View style={{ marginBottom: 10 }}>{renderActiveForm()}</View>
 				</ScrollView>
@@ -206,7 +264,7 @@ const Transaction = () => {
 							<ActivityIndicator color={colors.primaryLight} />
 						) : (
 							<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
-								Створити
+								{isEditing ? 'Зберегти' : 'Створити'}
 							</Typo>
 						)}
 					</Button>

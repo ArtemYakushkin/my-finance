@@ -5,6 +5,7 @@ import useFetchData from '@/hooks/useFetchData';
 import { getCurrencySymbol } from '@/utils/common';
 import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
+import { useMemo } from 'react';
 import { ImageBackground, View } from 'react-native';
 import Typo from './Typo';
 
@@ -23,31 +24,33 @@ const HomeCard = () => {
 	const { user } = useAuth();
 	const currencySymbol = getCurrencySymbol(user?.currency);
 
-	const {
-		data: wallets,
-		error,
-		loading: walletLoading,
-	} = useFetchData<WalletType>(
-		'wallets',
-		user?.uid ? [where('uid', '==', user?.uid), orderBy('created', 'desc')] : [],
-	);
+	// Мемоизируем массив запроса, чтобы избежать бесконечных рендеров и спама в Firestore
+	const constraints = useMemo(() => {
+		if (!user?.uid) return [];
+		return [where('uid', '==', user.uid), orderBy('created', 'desc')];
+	}, [user?.uid]);
 
-	const getTotals = () => {
+	const { data: wallets, error, loading: walletLoading } = useFetchData<WalletType>('wallets', constraints);
+
+	// Подсчет общих сумм
+	const totals = useMemo(() => {
+		if (!wallets || wallets.length === 0) {
+			return { balance: 0, income: 0, expenses: 0 };
+		}
+
 		return wallets.reduce(
-			(totals: any, item: WalletType) => {
-				// Используем оператор || 0 на случай, если в базе нет этих полей
-				totals.balance = totals.balance + Number(item.amount || 0);
-				totals.income = totals.income + Number(item.totalIncome || 0);
-				totals.expenses = totals.expenses + Number(item.totalExpenses || 0);
-				return totals;
+			(acc, item: WalletType) => {
+				acc.balance += Number(item.amount || 0);
+				acc.income += Number(item.totalIncome || 0);
+				acc.expenses += Number(item.totalExpenses || 0);
+				return acc;
 			},
-			{
-				balance: 0,
-				income: 0,
-				expenses: 0,
-			},
+			{ balance: 0, income: 0, expenses: 0 },
 		);
-	};
+	}, [wallets]);
+
+	// Проверяем, идет ли САМАЯ ПЕРВАЯ загрузка (когда данных еще нет, но флаг loading активен)
+	const isInitialLoading = walletLoading && (!wallets || wallets.length === 0);
 
 	return (
 		<ImageBackground
@@ -64,12 +67,15 @@ const HomeCard = () => {
 
 						<Icons.DotsThreeOutline size={23} color={colors.white} weight="fill" />
 					</View>
-					<Typo size={30} fontWeight={'bold'} color={colors.white}>
-						{currencySymbol} {walletLoading ? '----' : getTotals()?.balance?.toFixed(2)}
-					</Typo>
+					<View style={{ minHeight: 40, justifyContent: 'center' }}>
+						<Typo size={30} fontWeight={'bold'} color={colors.white}>
+							{currencySymbol} {isInitialLoading ? '----' : totals.balance.toFixed(2)}
+						</Typo>
+					</View>
 				</View>
 
 				<View style={globalStyles.statsCard}>
+					{/* Доход */}
 					<View style={{ gap: 5 }}>
 						<View style={globalStyles.incomeExpenseCard}>
 							<View style={globalStyles.statsIconCard}>
@@ -81,11 +87,12 @@ const HomeCard = () => {
 						</View>
 						<View>
 							<Typo size={17} fontWeight={600} color={colors.green}>
-								{currencySymbol} {walletLoading ? '----' : getTotals()?.income?.toFixed(2)}
+								{currencySymbol} {isInitialLoading ? '----' : totals.income.toFixed(2)}
 							</Typo>
 						</View>
 					</View>
 
+					{/* Расход */}
 					<View style={{ gap: 5 }}>
 						<View style={globalStyles.incomeExpenseCard}>
 							<View style={globalStyles.statsIconCard}>
@@ -97,7 +104,7 @@ const HomeCard = () => {
 						</View>
 						<View>
 							<Typo size={17} fontWeight={600} color={colors.rose}>
-								{currencySymbol} {walletLoading ? '----' : getTotals()?.expenses?.toFixed(2)}
+								{currencySymbol} {isInitialLoading ? '----' : totals.expenses.toFixed(2)}
 							</Typo>
 						</View>
 					</View>
