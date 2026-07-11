@@ -16,6 +16,12 @@ export type TransactionType = {
 	toWalletId?: string;
 };
 
+export type ResponseType = {
+	success: boolean;
+	data?: any;
+	msg?: string;
+};
+
 export const categoryGroups = [
 	{ label: 'База', value: 'needs', color: '#4a90e2', icon: Icons.HouseLine },
 	{ label: 'Хочу', value: 'desires', color: '#ef4444', icon: Icons.Star },

@@ -1,7 +1,8 @@
 import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
 import * as Icons from 'phosphor-react-native';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Button from './Button';
 import Typo from './Typo';
 
 interface CalcButtonProps {
@@ -22,17 +23,7 @@ const CalcButton = ({ text, onPress, isDone, isEqual, isDouble }: CalcButtonProp
 
 	return (
 		<View style={[globalStyles.calcButtonWrapper, isDouble && globalStyles.calcButtonDouble]}>
-			<TouchableOpacity
-				onPress={onPress}
-				activeOpacity={0.8}
-				style={{
-					borderRadius: 12,
-					borderWidth: 1,
-					borderColor: colors.neutral300,
-					paddingVertical: 10,
-					alignItems: 'center',
-				}}
-			>
+			<Button onPress={onPress}>
 				{text === 'back' ? (
 					<Icons.Backspace size={22} color={textColor} weight="bold" style={{ paddingVertical: 3 }} />
 				) : (
@@ -40,7 +31,7 @@ const CalcButton = ({ text, onPress, isDone, isEqual, isDouble }: CalcButtonProp
 						{text}
 					</Typo>
 				)}
-			</TouchableOpacity>
+			</Button>
 		</View>
 	);
 };

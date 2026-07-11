@@ -1,5 +1,17 @@
 import { db } from '@/config/firebase';
-import { collection, doc, runTransaction, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { colors } from '@/constants/theme';
+import { ResponseType, TransactionType } from '@/constants/types';
+import {
+	collection,
+	doc,
+	getDocs,
+	orderBy,
+	query,
+	runTransaction,
+	serverTimestamp,
+	Timestamp,
+	where,
+} from 'firebase/firestore';
 
 // Строгая типизация структуры транзакции в базе данных
 export type TransactionData = {
@@ -15,9 +27,6 @@ export type TransactionData = {
 };
 
 export const transactionService = {
-	/**
-	 * Создает транзакцию и атомарно обновляет балансы и аналитику кошельков.
-	 */
 	createTransaction: async (data: TransactionData) => {
 		const transactionRef = doc(collection(db, 'transactions'));
 		const walletRef = doc(db, 'wallets', data.walletId);
@@ -241,9 +250,6 @@ export const transactionService = {
 		});
 	},
 
-	/**
-	 * Атомарное удаление транзакции с полным вычетом из общей аналитики кошельков
-	 */
 	deleteTransaction: async (txId: string, oldData: any) => {
 		const txRef = doc(db, 'transactions', txId);
 		const walletRef = doc(db, 'wallets', oldData.walletId);
@@ -292,4 +298,155 @@ export const transactionService = {
 			ts.delete(txRef);
 		});
 	},
+};
+
+export const fetchMonthStats = async (uid: string, selectedDate: Date): Promise<ResponseType> => {
+	try {
+		const year = selectedDate.getFullYear();
+		const month = selectedDate.getMonth();
+
+		const startOfMonth = new Date(year, month, 1);
+		const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59);
+
+		const transactionsQuery = query(
+			collection(db, 'transactions'),
+			where('uid', '==', uid),
+			where('date', '>=', Timestamp.fromDate(startOfMonth)),
+			where('date', '<=', Timestamp.fromDate(endOfMonth)),
+			orderBy('date', 'desc'),
+		);
+
+		const querySnapshot = await getDocs(transactionsQuery);
+
+		const monthsOfYear = [
+			'Січ',
+			'Лют',
+			'Бер',
+			'Квіт',
+			'Трав',
+			'Черв',
+			'Лип',
+			'Серп',
+			'Вер',
+			'Жовт',
+			'Лист',
+			'Груд',
+		];
+
+		// ЯВНАЯ ТИПИЗАЦИЯ МАССИВА
+		const monthlyData: { month: string; key: string; income: number; expense: number }[] = [];
+
+		for (let i = 0; i < 12; i++) {
+			monthlyData.push({
+				month: `${monthsOfYear[i]} ${year.toString().slice(-2)}`,
+				key: `${year}-${i}`,
+				income: 0,
+				expense: 0,
+			});
+		}
+
+		const transactions: TransactionType[] = [];
+		querySnapshot.forEach((doc) => {
+			const transaction = doc.data() as TransactionType;
+			transaction.id = doc.id;
+			transactions.push(transaction);
+
+			const date = (transaction.date as Timestamp).toDate();
+			const transactionKey = `${date.getFullYear()}-${date.getMonth()}`;
+			const monthData = monthlyData.find((m) => m.key === transactionKey);
+
+			if (monthData) {
+				if (transaction.type === 'income') monthData.income += Number(transaction.amount);
+				else monthData.expense += Number(transaction.amount);
+			}
+		});
+
+		const stats = monthlyData
+			.filter((m) => m.income > 0 || m.expense > 0 || m.key === `${year}-${month}`)
+			.flatMap((month) => [
+				{
+					value: month.income,
+					label: month.month,
+					spacing: 4,
+					labelWidth: 46,
+					frontColor: colors.primaryLight,
+				},
+				{ value: month.expense, frontColor: colors.rose },
+			]);
+
+		return { success: true, data: { stats, transactions } };
+	} catch (error: any) {
+		return { success: false, msg: error.message };
+	}
+};
+
+export const fetchYearStats = async (uid: string, selectedDate: Date): Promise<ResponseType> => {
+	try {
+		const year = selectedDate.getFullYear();
+		const startOfYear = new Date(year, 0, 1);
+		const endOfYear = new Date(year, 11, 31, 23, 59, 59);
+
+		const transactionsQuery = query(
+			collection(db, 'transactions'),
+			where('uid', '==', uid),
+			where('date', '>=', Timestamp.fromDate(startOfYear)),
+			where('date', '<=', Timestamp.fromDate(endOfYear)),
+			orderBy('date', 'desc'),
+		);
+
+		const querySnapshot = await getDocs(transactionsQuery);
+		const transactions: TransactionType[] = [];
+
+		// Группируем по годам (можно расширить диапазон, если нужно сравнение)
+		const yearlyData = [
+			{
+				year: year.toString(),
+				income: 0,
+				expense: 0,
+			},
+		];
+
+		querySnapshot.forEach((doc) => {
+			const transaction = doc.data() as TransactionType;
+			transaction.id = doc.id;
+			transactions.push(transaction);
+
+			if (transaction.type === 'income') yearlyData[0].income += Number(transaction.amount);
+			else yearlyData[0].expense += Number(transaction.amount);
+		});
+
+		const stats = yearlyData.flatMap((y) => [
+			{
+				value: y.income,
+				label: y.year,
+				spacing: 4,
+				labelWidth: 46,
+				frontColor: colors.primaryLight,
+			},
+			{ value: y.expense, frontColor: colors.rose },
+		]);
+
+		return { success: true, data: { stats, transactions } };
+	} catch (error: any) {
+		return { success: false, msg: error.message };
+	}
+};
+
+export const fetchCategories = async (uid: string) => {
+	try {
+		const categoriesRef = collection(db, 'categories');
+
+		const q = query(categoriesRef, where('uid', '==', uid));
+		const querySnapshot = await getDocs(q);
+
+		let categories: any[] = [];
+		querySnapshot.forEach((doc) => {
+			categories.push({ id: doc.id, ...doc.data() });
+		});
+
+		return { success: true, data: categories };
+	} catch (error: any) {
+		console.error('Error fetching categories: ', error);
+		return { success: false, msg: error.message };
+	}
 };

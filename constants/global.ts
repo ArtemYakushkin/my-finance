@@ -488,28 +488,31 @@ export const globalStyles = StyleSheet.create({
 		marginTop: 20,
 	},
 	calcDisplayInner: {
-		backgroundColor: 'rgba(0, 0, 0, 0.5)',
-		paddingHorizontal: 20,
-		alignItems: 'flex-end',
-		borderRadius: 12,
+		alignItems: 'center',
 		height: 60,
 		justifyContent: 'center',
 		overflow: 'hidden',
 	},
+	calcButtonOperators: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 34,
+		marginBottom: 20,
+	},
 	calcGrid: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		paddingHorizontal: 20,
+		paddingHorizontal: 10,
 		justifyContent: 'space-between',
 		width: '100%',
-		marginBottom: 60,
 	},
 	calcButtonWrapper: {
-		width: '23%',
-		marginVertical: 8,
+		width: '32%',
+		marginVertical: 2,
 	},
 	calcButtonDouble: {
-		width: '48%',
+		width: '49%',
 	},
 
 	// ----Upload Image----
