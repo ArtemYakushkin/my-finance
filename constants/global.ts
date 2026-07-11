@@ -6,7 +6,7 @@ export const globalStyles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: colors.neutral900,
+		backgroundColor: 'transparent',
 	},
 
 	logo: {
@@ -436,7 +436,7 @@ export const globalStyles = StyleSheet.create({
 		paddingTop: 15,
 		borderTopColor: colors.neutral700,
 		borderTopWidth: 1,
-		marginBottom: 60,
+		// marginBottom: 60,
 	},
 	modalAvatarContainer: {
 		position: 'relative',
@@ -471,7 +471,7 @@ export const globalStyles = StyleSheet.create({
 	calcContainer: {
 		borderTopLeftRadius: 30,
 		borderTopRightRadius: 30,
-		paddingBottom: 60,
+		paddingBottom: 30,
 		paddingHorizontal: 10,
 	},
 	calcHandle: {

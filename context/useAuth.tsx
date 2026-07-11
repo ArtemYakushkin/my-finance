@@ -1,6 +1,6 @@
 import { auth, db } from '@/config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore'; // Добавили updateDoc
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export interface UserType {
@@ -8,18 +8,20 @@ export interface UserType {
 	email: string | null;
 	name?: string;
 	currency?: string;
-	avatar?: string;
+	image?: string | null; // Синхронизировали с базой
 	[key: string]: any;
 }
 
 interface AuthContextType {
 	user: UserType | null;
 	loading: boolean;
+	updateUser: (uid: string, data: Partial<UserType>) => Promise<{ success: boolean; msg?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType>({
 	user: null,
 	loading: true,
+	updateUser: async () => ({ success: false, msg: 'Context not initialized' }),
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -30,14 +32,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		let unsubDoc: (() => void) | null = null;
 
 		const unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
-			// Очищаем старую подписку на документ при смене состояния
 			if (unsubDoc) {
 				unsubDoc();
 				unsubDoc = null;
 			}
 
 			if (firebaseUser) {
-				// Если Firebase нашел сохраненную сессию, идем в Firestore за именем
 				const userDocRef = doc(db, 'users', firebaseUser.uid);
 
 				unsubDoc = onSnapshot(
@@ -55,18 +55,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 								email: firebaseUser.email,
 							});
 						}
-						setLoading(false); // Загрузка завершена, данные пользователя получены
+						setLoading(false);
 					},
 					(error) => {
-						console.error(
-							'Помилка Firestore при получении профиля:',
-							error,
-						);
+						console.error('Помилка Firestore при получении профиля:', error);
 						setLoading(false);
 					},
 				);
 			} else {
-				// Сессии нет, сбрасываем состояние
 				setUser(null);
 				setLoading(false);
 			}
@@ -78,11 +74,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		};
 	}, []);
 
-	return (
-		<AuthContext.Provider value={{ user, loading }}>
-			{children}
-		</AuthContext.Provider>
-	);
+	// Вынесли из useEffect, чтобы функция была доступна в контексте
+	const updateUser = async (uid: string, data: Partial<UserType>) => {
+		try {
+			if (!uid) return { success: false, msg: 'User ID is required' };
+
+			const docRef = doc(db, 'users', uid); // Используем db вместо firestore
+
+			await updateDoc(docRef, data as any);
+
+			// Локальный стейт обновится сам благодаря подписке onSnapshot!
+			return { success: true };
+		} catch (error: any) {
+			console.log('Error updating user:', error);
+			return { success: false, msg: error.message };
+		}
+	};
+
+	return <AuthContext.Provider value={{ user, loading, updateUser }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

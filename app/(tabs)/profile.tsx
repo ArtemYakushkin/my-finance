@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import ProfileModal from '@/components/ProfileModal';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { auth } from '@/config/firebase';
@@ -10,7 +11,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import * as Icons from 'phosphor-react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, Alert, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Shadow } from 'react-native-shadow-2';
@@ -20,27 +21,26 @@ type accountOptionType = {
 	icon: React.ReactNode;
 	bgColor: string;
 	routeName?: any;
+	onPress?: () => void;
 };
 
 const defaultAvatar = require('../../assets/images/avatar.png');
 
 const Profile = () => {
-	// Получаем текущего юзера и статус загрузки контекста
 	const { user, loading } = useAuth();
 	const router = useRouter();
+	const [modalVisible, setModalVisible] = useState(false);
 
 	const accountOptions: accountOptionType[] = [
 		{
 			title: 'Редагувати профіль',
 			icon: <Icons.User size={24} color={colors.white} weight="fill" />,
-			routeName: '/(modals)/profileModal',
+			onPress: () => setModalVisible(true),
 			bgColor: '#6366f1',
 		},
 		{
 			title: 'Налаштування',
-			icon: (
-				<Icons.GearSix size={24} color={colors.white} weight="fill" />
-			),
+			icon: <Icons.GearSix size={24} color={colors.white} weight="fill" />,
 			routeName: '/(modals)/settingsModal',
 			bgColor: '#059669',
 		},
@@ -56,15 +56,17 @@ const Profile = () => {
 		},
 	];
 
-	// Динамическое определение источника аватара
 	const getAvatarSource = () => {
-		if (user?.avatar && user.avatar.trim() !== '') {
-			return { uri: user.avatar };
+		const avatarUrl = user?.image || user?.avatar;
+
+		if (avatarUrl && avatarUrl.trim() !== '') {
+			return { uri: avatarUrl };
 		}
 		return defaultAvatar;
 	};
 
 	const handlePress = (item: accountOptionType) => {
+		// 1. Проверка на логаут
 		if (item.title === 'Вийти') {
 			Alert.alert('Вихід з аккаунта', 'Ви дійсно хочете вийти?', [
 				{ text: 'Скасувати', style: 'cancel' },
@@ -75,10 +77,7 @@ const Profile = () => {
 						try {
 							await signOut(auth);
 						} catch (error) {
-							Alert.alert(
-								'Помилка',
-								'Не вдалося вийти з системи.',
-							);
+							Alert.alert('Помилка', 'Не вдалося вийти з системи.');
 						}
 					},
 				},
@@ -86,25 +85,23 @@ const Profile = () => {
 			return;
 		}
 
+		// 2. ДОБАВЛЯЕМ СЮДА: Проверка на открытие твоей библиотечной модалки
+		if (item.title === 'Редагувати профіль') {
+			setModalVisible(true); // Твой стейт для управления react-native-modal
+			return; // Обязательно ретёрнимся, чтобы код не шёл дальше к роутеру
+		}
+
+		// 3. Обычный роутинг для остальных страниц-модалок
 		if (item.routeName) {
-			router.push(item.routeName);
+			router.push(item.routeName as any);
 		}
 	};
 
-	// Если контекст еще инициализируется и стягивает данные из Firestore
 	if (loading) {
 		return (
 			<ScreenWrapper>
-				<View
-					style={[
-						globalStyles.container,
-						{ justifyContent: 'center', alignItems: 'center' },
-					]}
-				>
-					<ActivityIndicator
-						size="large"
-						color={colors.primaryLight || '#fff'}
-					/>
+				<View style={[globalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+					<ActivityIndicator size="large" color={colors.primaryLight || '#fff'} />
 				</View>
 			</ScreenWrapper>
 		);
@@ -115,31 +112,27 @@ const Profile = () => {
 			<View style={globalStyles.container}>
 				<Header title="Профіль" />
 
-				{/* Блок информации пользователя */}
 				<View style={globalStyles.profileInfo}>
-					<Shadow
-						{...SHADOW_AVATAR.light}
-						style={{ borderRadius: 200 }}
-					>
-						<Shadow
-							{...SHADOW_AVATAR.dark}
-							style={{ borderRadius: 200 }}
-						>
-							<Image
+					<Shadow {...SHADOW_AVATAR.light} style={{ borderRadius: 200 }}>
+						<Shadow {...SHADOW_AVATAR.dark} style={{ borderRadius: 200 }}>
+							{/* <Image
 								source={getAvatarSource()}
 								style={globalStyles.profileAvatar}
 								contentFit="cover"
 								transition={100}
+							/> */}
+							<Image
+								// Функция автоматически подставит URI при изменении стейта user
+								source={getAvatarSource()}
+								style={globalStyles.profileAvatar}
+								contentFit="cover"
+								transition={150} // Плавная смена аватарки при обновлении
 							/>
 						</Shadow>
 					</Shadow>
 
 					<View style={globalStyles.profileNameContainer}>
-						<Typo
-							size={24}
-							fontWeight={'600'}
-							color={colors.neutral100}
-						>
+						<Typo size={24} fontWeight={'600'} color={colors.neutral100}>
 							{user?.name || 'Користувач'}
 						</Typo>
 						<Typo size={15} color={colors.neutral400}>
@@ -148,68 +141,36 @@ const Profile = () => {
 					</View>
 				</View>
 
-				{/* Список опций меню */}
 				<View style={{ paddingHorizontal: 10 }}>
-					<Shadow
-						{...SHADOW_OPTIONS.light}
-						style={{ borderRadius: 20 }}
-					>
-						<Shadow
-							{...SHADOW_OPTIONS.dark}
-							style={{ borderRadius: 20 }}
-						>
+					<Shadow {...SHADOW_OPTIONS.light} style={{ borderRadius: 20 }}>
+						<Shadow {...SHADOW_OPTIONS.dark} style={{ borderRadius: 20 }}>
 							<View style={globalStyles.profileOptions}>
 								{accountOptions.map((item, index) => {
-									const isLast =
-										index === accountOptions.length - 1;
+									const isLast = index === accountOptions.length - 1;
 									return (
-										<Animated.View
-											entering={FadeInDown.delay(
-												index * 50,
-											).springify()}
-											key={index}
-										>
+										<Animated.View entering={FadeInDown.delay(index * 50).springify()} key={index}>
 											<TouchableOpacity
-												style={
-													globalStyles.profileOptionsItem
-												}
+												style={globalStyles.profileOptionsItem}
 												activeOpacity={0.6}
-												onPress={() =>
-													handlePress(item)
-												}
+												onPress={() => handlePress(item)}
 											>
 												<View
 													style={[
 														globalStyles.profileOptionsIcon,
 														{
-															backgroundColor:
-																item.bgColor,
+															backgroundColor: item.bgColor,
 														},
 													]}
 												>
 													{item.icon}
 												</View>
-												<Typo
-													size={16}
-													fontWeight={'500'}
-													style={{ flex: 1 }}
-												>
+												<Typo size={16} fontWeight={'500'} style={{ flex: 1 }}>
 													{item.title}
 												</Typo>
-												<Icons.CaretRight
-													size={18}
-													weight="bold"
-													color={colors.neutral500}
-												/>
+												<Icons.CaretRight size={18} weight="bold" color={colors.neutral500} />
 											</TouchableOpacity>
 
-											{!isLast && (
-												<View
-													style={
-														globalStyles.profileOptionsSeparator
-													}
-												/>
-											)}
+											{!isLast && <View style={globalStyles.profileOptionsSeparator} />}
 										</Animated.View>
 									);
 								})}
@@ -218,6 +179,8 @@ const Profile = () => {
 					</Shadow>
 				</View>
 			</View>
+
+			<ProfileModal visible={modalVisible} onClose={() => setModalVisible(false)} />
 		</ScreenWrapper>
 	);
 };

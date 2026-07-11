@@ -207,7 +207,8 @@ const TransactionDetailModal = ({ visible, onClose, transaction, categories, wal
 					</Shadow>
 				</View>
 
-				<View style={{ marginTop: 'auto', flexDirection: 'row' }}>
+				{/* <View style={{ marginTop: 'auto', flexDirection: 'row' }}> */}
+				<View style={[globalStyles.modalFooter, { marginTop: 'auto' }]}>
 					<Button style={{ marginRight: 5 }} onPress={handleDelete}>
 						<Icons.Trash color={colors.rose} size={24} weight="bold" />
 					</Button>
