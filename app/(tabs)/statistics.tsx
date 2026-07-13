@@ -210,7 +210,10 @@ const Statistics = () => {
 			<View style={globalStyles.container}>
 				<Header title="Статистика" />
 
-				<ScrollView contentContainerStyle={globalStyles.statScrollContent} showsVerticalScrollIndicator={false}>
+				<ScrollView
+					contentContainerStyle={[globalStyles.statScrollContent, { gap: 30, paddingHorizontal: 10 }]}
+					showsVerticalScrollIndicator={false}
+				>
 					<View>
 						<Shadow {...SHADOW_BLOCK.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
 							<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>

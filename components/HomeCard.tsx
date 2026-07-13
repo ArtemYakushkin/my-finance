@@ -24,7 +24,6 @@ const HomeCard = () => {
 	const { user } = useAuth();
 	const currencySymbol = getCurrencySymbol(user?.currency);
 
-	// Мемоизируем массив запроса, чтобы избежать бесконечных рендеров и спама в Firestore
 	const constraints = useMemo(() => {
 		if (!user?.uid) return [];
 		return [where('uid', '==', user.uid), orderBy('created', 'desc')];
@@ -32,7 +31,6 @@ const HomeCard = () => {
 
 	const { data: wallets, error, loading: walletLoading } = useFetchData<WalletType>('wallets', constraints);
 
-	// Подсчет общих сумм
 	const totals = useMemo(() => {
 		if (!wallets || wallets.length === 0) {
 			return { balance: 0, income: 0, expenses: 0 };
@@ -49,7 +47,6 @@ const HomeCard = () => {
 		);
 	}, [wallets]);
 
-	// Проверяем, идет ли САМАЯ ПЕРВАЯ загрузка (когда данных еще нет, но флаг loading активен)
 	const isInitialLoading = walletLoading && (!wallets || wallets.length === 0);
 
 	return (

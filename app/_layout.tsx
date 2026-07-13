@@ -1,5 +1,7 @@
 import ScreenWrapper from '@/components/ScreenWrapper';
+import Typo from '@/components/Typo';
 import { globalStyles } from '@/constants/global';
+import { colors } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/context/useAuth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -35,6 +37,9 @@ function MainLayout() {
 		return (
 			<ScreenWrapper>
 				<View style={globalStyles.mainContainer}>
+					<Typo size={28} color={colors.neutral200} style={{ marginBottom: 20 }}>
+						- MY FINANCE -
+					</Typo>
 					<Image
 						style={globalStyles.logo}
 						resizeMode="contain"
@@ -49,6 +54,14 @@ function MainLayout() {
 		<Stack screenOptions={{ headerShown: false }}>
 			<Stack.Screen name="(tabs)" />
 			<Stack.Screen name="(auth)" />
+
+			<Stack.Screen
+				name="settings"
+				options={{
+					animation: 'slide_from_right',
+				}}
+			/>
+
 			<Stack.Screen
 				name="(modals)/walletModal"
 				options={{
@@ -65,6 +78,27 @@ function MainLayout() {
 			/>
 			<Stack.Screen
 				name="(modals)/addCategoryModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+			<Stack.Screen
+				name="(modals)/manageCatModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+			<Stack.Screen
+				name="(modals)/monthModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+			<Stack.Screen
+				name="(modals)/currencyModal"
 				options={{
 					presentation: 'transparentModal',
 					animation: 'slide_from_bottom',

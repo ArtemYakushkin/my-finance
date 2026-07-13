@@ -41,7 +41,7 @@ const Profile = () => {
 		{
 			title: 'Налаштування',
 			icon: <Icons.GearSix size={24} color={colors.white} weight="fill" />,
-			routeName: '/(modals)/settingsModal',
+			routeName: '/settings',
 			bgColor: '#059669',
 		},
 		{
@@ -115,18 +115,11 @@ const Profile = () => {
 				<View style={globalStyles.profileInfo}>
 					<Shadow {...SHADOW_AVATAR.light} style={{ borderRadius: 200 }}>
 						<Shadow {...SHADOW_AVATAR.dark} style={{ borderRadius: 200 }}>
-							{/* <Image
-								source={getAvatarSource()}
-								style={globalStyles.profileAvatar}
-								contentFit="cover"
-								transition={100}
-							/> */}
 							<Image
-								// Функция автоматически подставит URI при изменении стейта user
 								source={getAvatarSource()}
 								style={globalStyles.profileAvatar}
 								contentFit="cover"
-								transition={150} // Плавная смена аватарки при обновлении
+								transition={150}
 							/>
 						</Shadow>
 					</Shadow>

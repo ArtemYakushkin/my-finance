@@ -385,7 +385,7 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 						<Shadow {...SHADOW_INPUT.dark} style={{ alignSelf: 'stretch' }}>
 							<LinearGradient {...INPUT_GRADIENT} style={globalStyles.modalInputInner}>
 								<Pressable style={globalStyles.modalInput} onPress={() => setShowCalcModal(true)}>
-									<Typo size={14}>{amount === 0 ? 'Ввести суму' : `${amount} ₴`}</Typo>
+									<Typo size={14}>{amount === 0 ? 'Ввести суму' : `${amount}`}</Typo>
 								</Pressable>
 							</LinearGradient>
 						</Shadow>

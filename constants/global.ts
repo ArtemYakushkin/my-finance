@@ -121,7 +121,7 @@ export const globalStyles = StyleSheet.create({
 	},
 	scrollViewStyle: {
 		marginTop: 10,
-		paddingBottom: 100,
+		paddingBottom: 20,
 		gap: 15,
 	},
 	addButton: {
@@ -201,10 +201,8 @@ export const globalStyles = StyleSheet.create({
 	// ----Statistics----
 
 	statScrollContent: {
-		gap: 30,
-		paddingTop: 10,
+		paddingTop: 20,
 		paddingBottom: 30,
-		paddingHorizontal: 10,
 	},
 	statSegmentWrap: {
 		flexDirection: 'row',
@@ -436,7 +434,7 @@ export const globalStyles = StyleSheet.create({
 		paddingTop: 15,
 		borderTopColor: colors.neutral700,
 		borderTopWidth: 1,
-		// marginBottom: 60,
+		marginBottom: 60,
 	},
 	modalAvatarContainer: {
 		position: 'relative',
@@ -662,5 +660,36 @@ export const globalStyles = StyleSheet.create({
 		borderWidth: 0.8,
 		borderRadius: 12,
 		borderColor: 'rgba(255, 255, 255, 0.08)',
+	},
+
+	// ----Manage Categories----
+
+	rowContainer: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingVertical: 14,
+		paddingHorizontal: 10,
+		borderBottomWidth: 1,
+		borderBottomColor: '#3e3e3eff',
+	},
+	rowNameContainer: {
+		flex: 1,
+	},
+
+	rowActions: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 4,
+	},
+	rowActionBtn: {
+		paddingHorizontal: 8,
+		paddingVertical: 4,
+	},
+	rowInput: {
+		color: colors.white,
+		fontSize: 15,
+		borderBottomWidth: 1,
+		borderBottomColor: colors.primaryLight || '#fff',
+		paddingVertical: 2,
 	},
 });
