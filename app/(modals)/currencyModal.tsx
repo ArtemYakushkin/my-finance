@@ -8,7 +8,8 @@ import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
 import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { showMessage } from 'react-native-flash-message';
 import { Shadow } from 'react-native-shadow-2';
 
 const currencies = [
@@ -27,7 +28,13 @@ const CurrencyModal = () => {
 		if (res.success) {
 			router.replace('/settings');
 		} else {
-			Alert.alert('Помилка', 'не вдалося оновити валюту');
+			showMessage({
+				message: 'Помилка',
+				description: 'Не вдалося оновити валюту',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		}
 	};
 

@@ -11,7 +11,8 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { showMessage } from 'react-native-flash-message';
 
 const Register = () => {
 	const [name, setName] = useState('');
@@ -21,84 +22,78 @@ const Register = () => {
 	const router = useRouter();
 
 	const handleRegister = async () => {
-		// 1. Локальная валидация перед отправкой запроса
 		if (!name.trim()) {
-			Alert.alert('Помилка', "Будь ласка, введіть своє ім'я");
+			showMessage({
+				message: 'Помилка',
+				description: "Будь ласка, введіть своє ім'я",
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return;
 		}
-
 		if (!email.trim()) {
-			Alert.alert('Помилка', 'Будь ласка, введіть ел. адресу');
+			showMessage({
+				message: 'Помилка',
+				description: 'Будь ласка, введіть ел. адресу',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return;
 		}
-
 		if (password.length < 6) {
-			Alert.alert('Помилка', 'Пароль має містити щонайменше 6 символів');
+			showMessage({
+				message: 'Помилка',
+				description: 'Пароль має містити щонайменше 6 символів',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return;
 		}
-
 		setIsLoading(true);
-
 		try {
-			// 1. Создаем пользователя в Firebase Authentication
-			const userCredential = await createUserWithEmailAndPassword(
-				auth,
-				email.trim(),
-				password,
-			);
+			const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
 			const user = userCredential.user;
-
-			// 2. Обновляем локальный профиль в Auth (опционально, для удобства)
 			await updateProfile(user, {
 				displayName: name.trim(),
 			});
-
-			// 3. Создаем документ пользователя в коллекции "users" в Firestore
-			// Используем user.uid как ID документа
 			await setDoc(doc(db, 'users', user.uid), {
 				uid: user.uid,
 				name: name.trim(),
 				email: email.trim().toLowerCase(),
-				avatar: '', // Изначально пустая строка (или ссылка на дефолтную картинку)
+				avatar: '',
 				currency: 'UAH',
-				createdAt: new Date().toISOString(), // Полезно хранить дату регистрации
+				createdAt: new Date().toISOString(),
 			});
-
-			// 4. Перенаправление в приложение
 			router.replace('/(tabs)');
 		} catch (error: any) {
-			console.error(error.code);
-
-			// 5. Обработка специфических ошибок Firebase
+			let errorMessage = 'Не вдалося зареєструватися. Спробуйте пізніше';
 			switch (error.code) {
 				case 'auth/email-already-in-use':
-					Alert.alert(
-						'Помилка',
-						'Користувач з такою ел. адресою вже існує',
-					);
+					errorMessage = 'Користувач з такою ел. адресою вже існує';
 					break;
 				case 'auth/invalid-email':
-					Alert.alert('Помилка', 'Введено некоректну ел. адресу');
+					errorMessage = 'Введено некоректну ел. адресу';
 					break;
 				case 'auth/weak-password':
-					Alert.alert(
-						'Помилка',
-						'Пароль надто слабкий. Спробуйте інший',
-					);
+					errorMessage = 'Пароль надто слабкий. Спробуйте інший';
 					break;
 				case 'auth/network-request-failed':
-					Alert.alert(
-						'Помилка',
-						'Проgeneric поєднання з мережею. Перевірте інтернет',
-					);
+					errorMessage = 'Проgeneric поєднання з мережею. Перевірте інтернет';
 					break;
 				default:
-					Alert.alert(
-						'Помилка',
-						'Щось пішло не так. Спробуйте пізніше',
-					);
+					console.log('Firebase auth error:', error.code);
 					break;
 			}
+			showMessage({
+				message: 'Помилка',
+				description: errorMessage,
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		} finally {
 			setIsLoading(false);
 		}
@@ -127,13 +122,7 @@ const Register = () => {
 						placeholder="Введіть своє ім'я"
 						value={name}
 						onChangeText={setName}
-						icon={
-							<Icons.User
-								size={26}
-								color={colors.neutral300}
-								weight="fill"
-							/>
-						}
+						icon={<Icons.User size={26} color={colors.neutral300} weight="fill" />}
 					/>
 
 					<Input
@@ -143,13 +132,7 @@ const Register = () => {
 						textContentType="emailAddress"
 						value={email}
 						onChangeText={setEmail}
-						icon={
-							<Icons.At
-								size={26}
-								color={colors.neutral300}
-								weight="fill"
-							/>
-						}
+						icon={<Icons.At size={26} color={colors.neutral300} weight="fill" />}
 					/>
 
 					<Input
@@ -157,24 +140,14 @@ const Register = () => {
 						value={password}
 						onChangeText={setPassword}
 						secureTextEntry
-						icon={
-							<Icons.Lock
-								size={26}
-								color={colors.neutral300}
-								weight="fill"
-							/>
-						}
+						icon={<Icons.Lock size={26} color={colors.neutral300} weight="fill" />}
 					/>
 
 					<Button loading={isLoading} onPress={handleRegister}>
 						{isLoading ? (
 							<ActivityIndicator color={colors.primaryLight} />
 						) : (
-							<Typo
-								fontWeight={'700'}
-								color={colors.primaryLight}
-								size={21}
-							>
+							<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
 								Зареєструватися
 							</Typo>
 						)}
@@ -184,11 +157,7 @@ const Register = () => {
 				<View style={globalStyles.authFooter}>
 					<Typo size={15}>Вже маєте обліковий запис?</Typo>
 					<Pressable onPress={() => router.push('/(auth)/login')}>
-						<Typo
-							size={15}
-							fontWeight={'700'}
-							color={colors.primaryLight}
-						>
+						<Typo size={15} fontWeight={'700'} color={colors.primaryLight}>
 							Вхід
 						</Typo>
 					</Pressable>

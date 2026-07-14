@@ -26,6 +26,7 @@
     "react-native": "0.86.0",
     "react-native-draggable-flatlist": "^4.0.3",
     "react-native-element-dropdown": "^2.12.4",
+    "react-native-flash-message": "^0.4.2",
     "react-native-gifted-charts": "^1.4.77",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-modal": "^14.0.0-rc.1",

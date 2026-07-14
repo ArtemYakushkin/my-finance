@@ -1,63 +1,52 @@
+import BackButton from '@/components/BackButton';
+import Button from '@/components/Button';
+import Header from '@/components/Header';
+import Input from '@/components/Input';
+import ModalWrapper from '@/components/ModalWrapper';
+import Typo from '@/components/Typo';
 import { globalStyles } from '@/constants/global';
-import { MAIN_GRADIENT } from '@/constants/gradient';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
 import { getProfileImage } from '@/services/imageService';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { Alert, Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
-import Modal from 'react-native-modal';
-import BackBtnModal from './BackBtnModal';
-import Button from './Button';
-import Header from './Header';
-import Input from './Input';
-import Typo from './Typo';
-
-type Props = {
-	visible: boolean;
-	onClose: () => void;
-};
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 
 type UserDataType = {
 	name: string;
-	image: string | null; // Храним строку URI для картинки
+	image: string | null;
 };
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-const ProfileModal = ({ visible, onClose }: Props) => {
-	// Достаем метод updateUser из нашего обновленного контекста
+const ProfileModal = () => {
 	const { user, updateUser } = useAuth();
-
+	const router = useRouter();
 	const [userData, setUserData] = useState<UserDataType>({
 		name: '',
 		image: null,
 	});
 	const [loading, setLoading] = useState(false);
 
-	// Синхронизируем внутренний стейт формы при открытии модалки
 	useEffect(() => {
-		if (visible && user) {
+		if (user) {
 			setUserData({
 				name: user?.name || '',
 				image: user?.image || null,
 			});
 		}
-	}, [user, visible]);
+	}, [user]);
 
 	const onPickImage = async () => {
 		let result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ['images'],
 			allowsEditing: true,
 			aspect: [1, 1],
-			quality: 0.4, // Немного сжимаем для экономии места в Firestore
+			quality: 0.4,
 		});
 
 		if (!result.canceled && result.assets && result.assets.length > 0) {
-			// Сохраняем локальный uri путь к картинке
 			setUserData((prev) => ({ ...prev, image: result.assets[0].uri }));
 		}
 	};
@@ -69,50 +58,26 @@ const ProfileModal = ({ visible, onClose }: Props) => {
 			Alert.alert('Користувач', 'Будь ласка, заповніть усі поля');
 			return;
 		}
-
 		setLoading(true);
-
-		// Передаем uid и объект с новыми данными
 		const res = await updateUser(user?.uid as string, { name: name.trim(), image });
-
-		setLoading(false); // Выключаем загрузку
+		setLoading(false);
 
 		if (res.success) {
-			// Так как у нас в ProfileModal кастомный onClose (управляющий стейтом),
-			// вместо router.back() просто закрываем эту же модалку.
-			onClose();
+			router.replace('/(tabs)/profile');
 		} else {
 			Alert.alert('Користувач', res.msg || 'Помилка оновлення');
 		}
 	};
 
 	return (
-		<Modal
-			isVisible={visible}
-			onBackdropPress={onClose}
-			onBackButtonPress={onClose}
-			swipeDirection="down"
-			onSwipeComplete={onClose}
-			propagateSwipe={true}
-			style={globalStyles.calcModal}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			backdropOpacity={0.7}
-			deviceHeight={SCREEN_HEIGHT}
-		>
-			<LinearGradient
-				{...(MAIN_GRADIENT as any)}
-				style={[globalStyles.calcContainer, { height: SCREEN_HEIGHT * 0.95 }]}
-			>
-				<View style={globalStyles.calcHandle} />
-
-				<Header title={'Оновити профіль'} leftIcon={<BackBtnModal onPress={onClose} />} />
+		<ModalWrapper>
+			<View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+				<Header title={'Оновити профіль'} leftIcon={<BackButton />} />
 
 				<ScrollView contentContainerStyle={globalStyles.modalForm} keyboardShouldPersistTaps="handled">
 					<View style={globalStyles.modalAvatarContainer}>
 						<Image
 							style={globalStyles.modalAvatar}
-							// Твой imageService должен уметь принимать строку-uri
 							source={getProfileImage(userData.image)}
 							contentFit="cover"
 							transition={150}
@@ -141,8 +106,8 @@ const ProfileModal = ({ visible, onClose }: Props) => {
 						</Typo>
 					</Button>
 				</View>
-			</LinearGradient>
-		</Modal>
+			</View>
+		</ModalWrapper>
 	);
 };
 

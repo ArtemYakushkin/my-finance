@@ -10,8 +10,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { Alert, Platform, Pressable, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
+import { showMessage } from 'react-native-flash-message';
 import { Shadow } from 'react-native-shadow-2';
 import Button from './Button';
 import CalculatorModal from './CalculatorModal';
@@ -38,7 +39,6 @@ type Props = {
 	oldData?: any;
 };
 
-// Используем forwardRef для безопасной передачи методов формы наружу
 const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [], setLoading, oldData }, ref) => {
 	const { user } = useAuth();
 	const router = useRouter();
@@ -61,7 +61,6 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 		setDescription('');
 	};
 
-	// СИНХРОНИЗАЦИЯ СТЕЙТА ПРИ ИЗМЕНЕНИИ ВХОДЯЩИХ ДАННЫХ (oldData)
 	useEffect(() => {
 		if (oldData) {
 			setWalletId(oldData.walletId || '');
@@ -124,10 +123,42 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 
 	const handleSaveExpense = async () => {
 		if (!user?.uid) return;
-		if (!walletId) return Alert.alert('Помилка', 'Виберіть гаманець списання');
-		if (!selectedGroup) return Alert.alert('Помилка', 'Виберіть групу категорій');
-		if (!subCategory) return Alert.alert('Помилка', 'Виберіть або створіть підкатегорію');
-		if (amount <= 0) return Alert.alert('Помилка', 'Сума повинна бути більша за 0');
+		if (!walletId) {
+			showMessage({
+				message: 'Помилка',
+				description: 'Виберіть гаманець списання',
+				type: 'warning',
+				icon: 'warning',
+			});
+			return;
+		}
+		if (!selectedGroup) {
+			showMessage({
+				message: 'Помилка',
+				description: 'Виберіть групу категорій',
+				type: 'warning',
+				icon: 'warning',
+			});
+			return;
+		}
+		if (!subCategory) {
+			showMessage({
+				message: 'Помилка',
+				description: 'Виберіть або створіть підкатегорію',
+				type: 'warning',
+				icon: 'warning',
+			});
+			return;
+		}
+		if (amount <= 0) {
+			showMessage({
+				message: 'Помилка',
+				description: 'Сума повинна бути більша за 0',
+				type: 'warning',
+				icon: 'warning',
+			});
+			return;
+		}
 
 		try {
 			setLoading(true);
@@ -163,7 +194,12 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 			resetForm();
 			router.replace('/(tabs)');
 		} catch (error: any) {
-			Alert.alert('Помилка', error.message || 'Щось пішло не так');
+			showMessage({
+				message: 'Помилка',
+				description: error.message || 'Щось пішло не так',
+				type: 'danger',
+				icon: 'danger',
+			});
 		} finally {
 			setLoading(false);
 		}

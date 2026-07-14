@@ -1,5 +1,6 @@
 import BackButton from '@/components/BackButton';
 import Button from '@/components/Button';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import Input from '@/components/Input';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
@@ -7,24 +8,28 @@ import { auth } from '@/config/firebase';
 import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
-import {
-	sendPasswordResetEmail,
-	signInWithEmailAndPassword,
-} from 'firebase/auth';
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import * as Icons from 'phosphor-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import { showMessage } from 'react-native-flash-message';
 
 const Login = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const [confirmVisible, setConfirmVisible] = useState(false);
 	const router = useRouter();
 
-	// 1. Функция авторизации
 	const handleLogin = async () => {
 		if (!email.trim() || !password.trim()) {
-			Alert.alert('Помилка', 'Будь ласка, заповніть усі поля');
+			showMessage({
+				message: 'Помилка',
+				description: 'Будь ласка, заповніть усі поля',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return;
 		}
 
@@ -32,82 +37,74 @@ const Login = () => {
 
 		try {
 			await signInWithEmailAndPassword(auth, email.trim(), password);
-			// Если всё ок, корневой _layout сам перенаправит на /(tabs) благодаря onAuthStateChanged
 			router.replace('/(tabs)');
 		} catch (error: any) {
-			console.error(error.code);
-
-			// Красивая обработка частых ошибок авторизации
+			let errorMessage = 'Не вдалося увійти. Спробуйте пізніше';
 			switch (error.code) {
 				case 'auth/invalid-email':
-					Alert.alert('Помилка', 'Введено некоректну ел. адресу');
+					errorMessage = 'Введено некоректну ел. адресу';
 					break;
 				case 'auth/user-not-found':
 				case 'auth/invalid-credential':
-					Alert.alert(
-						'Помилка',
-						'Невірний пароль або користувача не існує',
-					);
+					errorMessage = 'Невірний пароль або користувача не існує';
 					break;
 				case 'auth/user-disabled':
-					Alert.alert(
-						'Помилка',
-						'Цей обліковий запис було заблоковано',
-					);
+					errorMessage = 'Цей обліковий запис було заблоковано';
 					break;
 				default:
-					Alert.alert(
-						'Помилка',
-						'Не вдалося увійти. Спробуйте пізніше',
-					);
+					console.log('Firebase auth error:', error.code);
 					break;
 			}
+			showMessage({
+				message: 'Помилка',
+				description: errorMessage,
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
-	// 2. Функция восстановления пароля
 	const handleForgotPassword = () => {
 		if (!email.trim()) {
-			Alert.alert(
-				'Відновлення пароля',
-				'Будь ласка, спочатку введіть свою ел. адресу в поле вводу, щоб ми знали, куди надіслати лист.',
-			);
+			showMessage({
+				message: 'Відновлення пароля',
+				description: 'Будь ласка, спочатку введіть свою ел. адресу.',
+				type: 'warning',
+				backgroundColor: colors.gradientMid,
+				color: colors.orange,
+			});
 			return;
 		}
+		setConfirmVisible(true);
+	};
 
-		Alert.alert(
-			'Скидання пароля',
-			`Надіслати інструкцію для зміни пароля на адресу ${email.trim()}?`,
-			[
-				{ text: 'Скасувати', style: 'cancel' },
-				{
-					text: 'Надіслати',
-					onPress: async () => {
-						try {
-							await sendPasswordResetEmail(auth, email.trim());
-							Alert.alert(
-								'Успішно',
-								'Лист для зміни пароля надіслано! Перевірте вашу пошту (включаючи папку Спам).',
-							);
-						} catch (error: any) {
-							if (error.code === 'auth/invalid-email') {
-								Alert.alert(
-									'Помилка',
-									'Введено некоректну ел. адресу',
-								);
-							} else {
-								Alert.alert(
-									'Помилка',
-									'Не вдалося надіслати лист. Спробуйте пізніше.',
-								);
-							}
-						}
-					},
-				},
-			],
-		);
+	const executePasswordReset = async () => {
+		setConfirmVisible(false);
+		try {
+			await sendPasswordResetEmail(auth, email.trim());
+			showMessage({
+				message: 'Успішно',
+				description: 'Лист для зміни пароля надіслано! Перевірте пошту (включаючи папку Спам).',
+				type: 'success',
+				backgroundColor: colors.gradientMid,
+				color: colors.primary,
+			});
+		} catch (error: any) {
+			let errorText = 'Не вдалося надіслати лист. Спробуйте пізніше.';
+			if (error.code === 'auth/invalid-email') {
+				errorText = 'Введено некоректну ел. адресу';
+			}
+			showMessage({
+				message: 'Помилка',
+				description: errorText,
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
+		}
 	};
 
 	return (
@@ -136,13 +133,7 @@ const Login = () => {
 						textContentType="emailAddress"
 						value={email}
 						onChangeText={setEmail}
-						icon={
-							<Icons.At
-								size={26}
-								color={colors.neutral300}
-								weight="fill"
-							/>
-						}
+						icon={<Icons.At size={26} color={colors.neutral300} weight="fill" />}
 					/>
 
 					<Input
@@ -150,19 +141,10 @@ const Login = () => {
 						secureTextEntry
 						value={password}
 						onChangeText={setPassword}
-						icon={
-							<Icons.Lock
-								size={26}
-								color={colors.neutral300}
-								weight="fill"
-							/>
-						}
+						icon={<Icons.Lock size={26} color={colors.neutral300} weight="fill" />}
 					/>
 
-					<Pressable
-						onPress={handleForgotPassword}
-						style={{ alignSelf: 'flex-end' }}
-					>
+					<Pressable onPress={handleForgotPassword} style={{ alignSelf: 'flex-end' }}>
 						<Typo size={14} color={colors.text}>
 							Забули пароль?
 						</Typo>
@@ -172,11 +154,7 @@ const Login = () => {
 						{isLoading ? (
 							<ActivityIndicator color={colors.primaryLight} />
 						) : (
-							<Typo
-								fontWeight={'700'}
-								color={colors.primaryLight}
-								size={21}
-							>
+							<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
 								Вхід
 							</Typo>
 						)}
@@ -186,16 +164,22 @@ const Login = () => {
 				<View style={globalStyles.authFooter}>
 					<Typo size={15}>Немає облікового запису?</Typo>
 					<Pressable onPress={() => router.push('/(auth)/register')}>
-						<Typo
-							size={15}
-							fontWeight={'700'}
-							color={colors.primaryLight}
-						>
+						<Typo size={15} fontWeight={'700'} color={colors.primaryLight}>
 							Зареєструватися
 						</Typo>
 					</Pressable>
 				</View>
 			</View>
+
+			<ConfirmModal
+				visible={confirmVisible}
+				title="Скидання пароля"
+				message={`Надіслати інструкцію для зміни пароля на адресу ${email.trim()}?`}
+				confirmText="Надіслати"
+				cancelText="Скасувати"
+				onConfirm={executePasswordReset}
+				onCancel={() => setConfirmVisible(false)}
+			/>
 		</ScreenWrapper>
 	);
 };

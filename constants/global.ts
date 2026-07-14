@@ -429,8 +429,7 @@ export const globalStyles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		flexDirection: 'row',
-		paddingHorizontal: 20,
-		gap: 24,
+		paddingHorizontal: 10,
 		paddingTop: 15,
 		borderTopColor: colors.neutral700,
 		borderTopWidth: 1,
@@ -691,5 +690,24 @@ export const globalStyles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: colors.primaryLight || '#fff',
 		paddingVertical: 2,
+	},
+
+	// ----Confirm Modal----
+
+	confOverlay: {
+		flex: 1,
+		backgroundColor: 'rgba(0, 0, 0, 0.9)',
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 20,
+	},
+	confModalBox: {
+		width: '100%',
+		maxWidth: 320,
+		backgroundColor: '#161618',
+		borderRadius: 24,
+		padding: 24,
+		borderWidth: 1,
+		borderColor: '#242427',
 	},
 });

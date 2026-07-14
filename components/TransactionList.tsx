@@ -8,10 +8,8 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { Timestamp } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
-import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Loading from './Loading';
-import TransactionDetailModal from './TransactionDetailModal';
 import Typo from './Typo';
 
 type TransactionItemProps = {
@@ -19,7 +17,7 @@ type TransactionItemProps = {
 	index: number;
 	handleClick: (item: TransactionType) => void;
 	categories: any[];
-	wallets: any[]; // Добавлено сюда, чтобы мапить кошельки прямо в строке (опционально)
+	wallets: any[];
 };
 
 type TransactionListType = {
@@ -38,12 +36,9 @@ const TransactionList = ({
 	emptyListMessage,
 	filterByMonth = false,
 	categories,
-	wallets, // Убрали дефолтный деструктуризатор [], чтобы видеть если родитель ничего не прислал
+	wallets,
 }: TransactionListType) => {
 	const router = useRouter();
-
-	const [selectedTx, setSelectedTx] = useState<TransactionType | null>(null);
-	const [modalVisible, setModalVisible] = useState(false);
 
 	const finalData = filterByMonth
 		? data.filter((item) => {
@@ -58,15 +53,13 @@ const TransactionList = ({
 		: data;
 
 	const handleClick = (item: TransactionType) => {
-		setSelectedTx(item);
-		setModalVisible(true);
-	};
-
-	const handleEditPress = (tx: TransactionType) => {
-		setModalVisible(false);
 		router.push({
-			pathname: '/transaction',
-			params: { editData: JSON.stringify(tx) },
+			pathname: '/(modals)/detailModal',
+			params: {
+				txData: JSON.stringify(item),
+				categories: JSON.stringify(categories),
+				wallets: JSON.stringify(wallets),
+			},
 		});
 	};
 
@@ -96,15 +89,6 @@ const TransactionList = ({
 					<Loading />
 				</View>
 			)}
-
-			<TransactionDetailModal
-				visible={modalVisible}
-				onClose={() => setModalVisible(false)}
-				transaction={selectedTx}
-				categories={categories}
-				wallets={wallets}
-				onEdit={handleEditPress}
-			/>
 		</View>
 	);
 };
@@ -122,7 +106,6 @@ const TransactionItem = ({ item, index, handleClick, categories, wallets }: Tran
 		}
 
 		if (item?.type === 'transfer') {
-			// Для отображения кошельков прямо в строке списка (опционально)
 			const fromW = wallets?.find((w) => w.id === item.fromWalletId)?.name || '...';
 			const toW = wallets?.find((w) => w.id === item.toWalletId)?.name || '...';
 			return {

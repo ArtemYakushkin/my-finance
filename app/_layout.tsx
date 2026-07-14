@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from '@/context/useAuth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, LogBox, View } from 'react-native';
+import FlashMessage from 'react-native-flash-message';
 
 LogBox.ignoreLogs(['InteractionManager has been deprecated', 'Accessing element.ref was removed in React 19']);
 
@@ -104,6 +105,20 @@ function MainLayout() {
 					animation: 'slide_from_bottom',
 				}}
 			/>
+			<Stack.Screen
+				name="(modals)/profileModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+			<Stack.Screen
+				name="(modals)/detailModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
 		</Stack>
 	);
 }
@@ -112,6 +127,15 @@ export default function RootLayout() {
 	return (
 		<AuthProvider>
 			<MainLayout />
+
+			<FlashMessage
+				position="top"
+				floating={true}
+				titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
+				textStyle={{ fontSize: 14 }}
+				duration={3500}
+				style={{ marginTop: 40 }}
+			/>
 		</AuthProvider>
 	);
 }

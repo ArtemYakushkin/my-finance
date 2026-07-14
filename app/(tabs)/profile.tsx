@@ -1,5 +1,4 @@
 import Header from '@/components/Header';
-import ProfileModal from '@/components/ProfileModal';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { auth } from '@/config/firebase';
@@ -11,7 +10,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import * as Icons from 'phosphor-react-native';
-import React, { useState } from 'react';
+import React from 'react';
 import { ActivityIndicator, Alert, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Shadow } from 'react-native-shadow-2';
@@ -29,13 +28,12 @@ const defaultAvatar = require('../../assets/images/avatar.png');
 const Profile = () => {
 	const { user, loading } = useAuth();
 	const router = useRouter();
-	const [modalVisible, setModalVisible] = useState(false);
 
 	const accountOptions: accountOptionType[] = [
 		{
 			title: 'Редагувати профіль',
 			icon: <Icons.User size={24} color={colors.white} weight="fill" />,
-			onPress: () => setModalVisible(true),
+			routeName: '/(modals)/profileModal',
 			bgColor: '#6366f1',
 		},
 		{
@@ -66,7 +64,6 @@ const Profile = () => {
 	};
 
 	const handlePress = (item: accountOptionType) => {
-		// 1. Проверка на логаут
 		if (item.title === 'Вийти') {
 			Alert.alert('Вихід з аккаунта', 'Ви дійсно хочете вийти?', [
 				{ text: 'Скасувати', style: 'cancel' },
@@ -84,14 +81,6 @@ const Profile = () => {
 			]);
 			return;
 		}
-
-		// 2. ДОБАВЛЯЕМ СЮДА: Проверка на открытие твоей библиотечной модалки
-		if (item.title === 'Редагувати профіль') {
-			setModalVisible(true); // Твой стейт для управления react-native-modal
-			return; // Обязательно ретёрнимся, чтобы код не шёл дальше к роутеру
-		}
-
-		// 3. Обычный роутинг для остальных страниц-модалок
 		if (item.routeName) {
 			router.push(item.routeName as any);
 		}
@@ -172,8 +161,6 @@ const Profile = () => {
 					</Shadow>
 				</View>
 			</View>
-
-			<ProfileModal visible={modalVisible} onClose={() => setModalVisible(false)} />
 		</ScreenWrapper>
 	);
 };

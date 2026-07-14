@@ -1,4 +1,5 @@
 import BackButton from '@/components/BackButton';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
@@ -15,7 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { doc, updateDoc, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { Alert, Keyboard, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import { Keyboard, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import { showMessage } from 'react-native-flash-message';
 import { Shadow } from 'react-native-shadow-2';
 
 interface CategoryItem {
@@ -33,6 +35,8 @@ const ManageCategoriesModal = () => {
 	const [localCategories, setLocalCategories] = useState<CategoryItem[]>([]);
 	const [editName, setEditName] = useState('');
 	const [keyboardHeight, setKeyboardHeight] = useState(0);
+	const [confirmVisible, setConfirmVisible] = useState(false);
+	const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
 	const { data: firebaseCategories } = useFetchData<CategoryItem>(
 		'categories',
@@ -62,25 +66,46 @@ const ManageCategoriesModal = () => {
 		}
 	}, [firebaseCategories]);
 
-	const handleDelete = (categoryName: string) => {
-		Alert.alert(
-			'Увага!',
-			`Ви впевнені, що хочете видалити категорію "${categoryName}"? Усі транзакції цієї категорії будуть видалені, а кошти повернуться на баланс гаманців.`,
-			[
-				{ text: 'Скасувати', style: 'cancel' },
-				{
-					text: 'Видалити',
-					style: 'destructive',
-					onPress: async () => {
-						if (!user?.uid) return;
-						const res = await deleteCategoryAndRefundBalance(user.uid, categoryName);
-						if (!res.success) {
-							Alert.alert('Помилка', res.msg || 'Не вдалося видалити категорію');
-						}
-					},
-				},
-			],
-		);
+	const handleDeletePress = (categoryName: string) => {
+		setCategoryToDelete(categoryName);
+		setConfirmVisible(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (!user?.uid || !categoryToDelete) return;
+
+		setConfirmVisible(false);
+
+		try {
+			const res = await deleteCategoryAndRefundBalance(user.uid, categoryToDelete);
+			if (res.success) {
+				showMessage({
+					message: 'Успішно',
+					description: `Категорію "${categoryToDelete}" видалено`,
+					type: 'success',
+					backgroundColor: colors.gradientMid,
+					color: colors.primaryLight,
+				});
+			} else {
+				showMessage({
+					message: 'Помилка',
+					description: res.msg || 'Не вдалося видалити категорію',
+					type: 'danger',
+					backgroundColor: colors.gradientMid,
+					color: colors.rose,
+				});
+			}
+		} catch (error) {
+			showMessage({
+				message: 'Помилка',
+				description: 'Щось пішло не так при видаленні',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
+		} finally {
+			setCategoryToDelete(null);
+		}
 	};
 
 	const handleSaveEdit = async (id: string) => {
@@ -90,7 +115,13 @@ const ManageCategoriesModal = () => {
 			await updateDoc(catRef, { name: editName.trim() });
 			setEditingId(null);
 		} catch (error) {
-			Alert.alert('Помилка', 'Не вдалося оновити назву');
+			showMessage({
+				message: 'Помилка',
+				description: 'Не вдалося оновити назву',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		}
 	};
 
@@ -133,7 +164,7 @@ const ManageCategoriesModal = () => {
 						</TouchableOpacity>
 					)}
 
-					<TouchableOpacity onPress={() => handleDelete(item.name)} style={globalStyles.rowActionBtn}>
+					<TouchableOpacity onPress={() => handleDeletePress(item.name)} style={globalStyles.rowActionBtn}>
 						<Icons.Trash color={colors.rose || '#e11d48'} size={20} />
 					</TouchableOpacity>
 				</View>
@@ -193,6 +224,19 @@ const ManageCategoriesModal = () => {
 					})}
 				</ScrollView>
 			</View>
+
+			<ConfirmModal
+				visible={confirmVisible}
+				title="Увага!"
+				message={`Ви впевнені, що хочете видалити категорію "${categoryToDelete}"? Усі транзакції цієї категорії будуть видалені, а кошти повернуться на баланс гаманців.`}
+				confirmText="Видалити"
+				cancelText="Скасувати"
+				onConfirm={handleConfirmDelete}
+				onCancel={() => {
+					setConfirmVisible(false);
+					setCategoryToDelete(null);
+				}}
+			/>
 		</ModalWrapper>
 	);
 };
