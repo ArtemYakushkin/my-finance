@@ -30,9 +30,7 @@ const DetailModal = () => {
 		if (params.txData) {
 			try {
 				setTransaction(JSON.parse(params.txData));
-			} catch (e) {
-				console.error('Помилка парсингу транзакції:', e);
-			}
+			} catch (e) {}
 		}
 		if (params.categories) {
 			try {
@@ -87,7 +85,6 @@ const DetailModal = () => {
 			});
 			router.back();
 		} catch (error) {
-			console.error('Помилка при видаленні транзакції:', error);
 			showMessage({
 				message: 'Помилка',
 				description: 'Не вдалося видалити транзакцію та оновити аналітику.',

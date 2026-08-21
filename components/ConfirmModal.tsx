@@ -2,7 +2,7 @@ import { globalStyles } from '@/constants/global';
 import { INPUT_GRADIENT } from '@/constants/gradient';
 import { colors } from '@/constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Modal, StyleSheet, View } from 'react-native';
+import { Modal, View } from 'react-native';
 import Button from './Button';
 import Typo from './Typo';
 
@@ -64,24 +64,3 @@ export const ConfirmModal = ({
 		</Modal>
 	);
 };
-
-const styles = StyleSheet.create({
-	title: {},
-	message: {},
-	buttonContainer: {},
-	button: {
-		flex: 1,
-		height: 48,
-		borderRadius: 16,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	cancelButton: {
-		backgroundColor: 'transparent',
-		borderWidth: 1,
-		borderColor: '#343437',
-	},
-	confirmButton: {
-		backgroundColor: colors.primary || '#007AFF',
-	},
-});

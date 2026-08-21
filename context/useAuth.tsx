@@ -1,7 +1,9 @@
 import { auth, db } from '@/config/firebase';
+import { colors } from '@/constants/theme';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore'; // Добавили updateDoc
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { showMessage } from 'react-native-flash-message';
 
 export interface UserType {
 	uid: string;
@@ -58,7 +60,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 						setLoading(false);
 					},
 					(error) => {
-						console.error('Помилка Firestore при получении профиля:', error);
 						setLoading(false);
 					},
 				);
@@ -74,19 +75,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		};
 	}, []);
 
-	// Вынесли из useEffect, чтобы функция была доступна в контексте
 	const updateUser = async (uid: string, data: Partial<UserType>) => {
 		try {
 			if (!uid) return { success: false, msg: 'User ID is required' };
 
-			const docRef = doc(db, 'users', uid); // Используем db вместо firestore
+			const docRef = doc(db, 'users', uid);
 
 			await updateDoc(docRef, data as any);
 
-			// Локальный стейт обновится сам благодаря подписке onSnapshot!
 			return { success: true };
 		} catch (error: any) {
-			console.log('Error updating user:', error);
+			showMessage({
+				message: 'Помилка оновлення',
+				description: error.message || 'Не вдалося оновити дані профілю',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return { success: false, msg: error.message };
 		}
 	};

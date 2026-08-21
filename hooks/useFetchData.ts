@@ -1,22 +1,11 @@
-import { db } from '@/config/firebase'; // Изменили firestore на db, как в остальных ваших файлах
-import {
-	collection,
-	onSnapshot,
-	query,
-	QueryConstraint,
-} from 'firebase/firestore';
+import { db } from '@/config/firebase';
+import { collection, onSnapshot, query, QueryConstraint } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
-const useFetchData = <T>(
-	collectionName: string,
-	constraints: QueryConstraint[],
-) => {
+const useFetchData = <T>(collectionName: string, constraints: QueryConstraint[]) => {
 	const [data, setData] = useState<T[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-
-	// Сериализуем ограничения в строку, чтобы useEffect мог сравнивать их примитивно,
-	// а не по ссылке на массив. Это предотвратит бесконечный цикл рендеров.
 	const constraintsKey = JSON.stringify(constraints.map((c) => c.type));
 
 	useEffect(() => {
@@ -25,7 +14,7 @@ const useFetchData = <T>(
 			return;
 		}
 
-		setLoading(true); // Включаем лоадер при изменении параметров запроса
+		setLoading(true);
 
 		const collectionRef = collection(db, collectionName);
 		const q = query(collectionRef, ...constraints);
@@ -41,24 +30,16 @@ const useFetchData = <T>(
 				}) as T[];
 
 				setData(fetchedData);
-				setError(null); // Сбрасываем ошибку, если данные пришли успешно
+				setError(null);
 				setLoading(false);
 			},
 			(err) => {
-				console.error(
-					`Помилка завантаження колекції ${collectionName}:`,
-					err,
-				);
-				setError(err.message);
+				setError(err.message || 'Помилка завантаження даних');
 				setLoading(false);
 			},
 		);
 
-		// Отписываемся от старого слушателя при размонтировании или смене фильтров
 		return () => unsub();
-
-		// Теперь хук перезапустится только тогда, когда реально изменится имя коллекции
-		// или структура фильтров/сортировки
 	}, [collectionName, constraintsKey]);
 
 	return { data, loading, error };

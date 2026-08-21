@@ -13,15 +13,14 @@ import {
 	where,
 } from 'firebase/firestore';
 
-// Строгая типизация структуры транзакции в базе данных
 export type TransactionData = {
 	uid: string;
 	type: 'expense' | 'income' | 'transfer';
 	amount: number;
-	walletId: string; // Для transfer это кошелек-отправитель (fromWalletId)
-	toWalletId?: string; // Только для типа transfer
-	categoryGroup?: string; // Только для типа expense
-	category?: string; // Только для типа expense (подкатегория)
+	walletId: string;
+	toWalletId?: string;
+	categoryGroup?: string;
+	category?: string;
 	date: Date;
 	description?: string;
 };
@@ -68,7 +67,6 @@ export const transactionService = {
 					throw new Error('Недостатньо коштів на гаманці для здійснення переказу');
 				}
 
-				// Объявляем константы прямо здесь, внутри блока
 				const toWalletCurrentBalance = Number(toWalletSnap.data().amount || 0);
 				const toWalletCurrentIncome = Number(toWalletSnap.data().totalIncome || 0);
 
@@ -79,7 +77,6 @@ export const transactionService = {
 				newToWalletIncome = toWalletCurrentIncome + data.amount;
 			}
 
-			// Запись транзакции
 			ts.set(transactionRef, {
 				...data,
 				amount: Number(data.amount),
@@ -87,14 +84,12 @@ export const transactionService = {
 				createdAt: serverTimestamp(),
 			});
 
-			// Обновление кошелька-отправителя / основного
 			ts.update(walletRef, {
 				amount: newBalance,
 				totalIncome: newTotalIncome,
 				totalExpenses: newTotalExpenses,
 			});
 
-			// Обновление кошелька-получателя (если перевод)
 			if (toWalletRef) {
 				ts.update(toWalletRef, {
 					amount: newToWalletBalance,
@@ -108,29 +103,20 @@ export const transactionService = {
 		const txRef = doc(db, 'transactions', txId);
 
 		await runTransaction(db, async (ts) => {
-			// === ШАГ 1: СТРОГО ВСЕ ЧТЕНИЯ (READS) НА САМОМ ВЕРХУ ТРАНЗАКЦИИ ===
 			const oldWalletRef = doc(db, 'wallets', oldData.walletId);
 			const newWalletRef = doc(db, 'wallets', newData.walletId);
-
-			// Читаем старый и новый кошелек сразу
 			const oldWalletSnap = await ts.get(oldWalletRef);
 			const newWalletSnap = await ts.get(newWalletRef);
-
-			// Читаем старый целевой кошелек перевода, если это был перевод
 			let oldToWalletSnap = null;
 			if (oldData.type === 'transfer') {
 				const oldToWalletRef = doc(db, 'wallets', oldData.toWalletId);
 				oldToWalletSnap = await ts.get(oldToWalletRef);
 			}
-
-			// Читаем новый целевой кошелек перевода, если это новый перевод
 			let newToWalletSnap = null;
 			if (newData.type === 'transfer') {
 				const newToWalletRef = doc(db, 'wallets', newData.toWalletId);
 				newToWalletSnap = await ts.get(newToWalletRef);
 			}
-
-			// === ШАГ 2: ОТКАТ СТАРЫХ ДАННЫХ (ТОЛЬКО В ПАМЯТИ ИЛИ ПРОВЕРЕННЫЕ ОБНОВЛЕНИЯ) ===
 			let oldWBalance = oldWalletSnap.exists() ? Number(oldWalletSnap.data().amount || 0) : 0;
 			let oldWIncome = oldWalletSnap.exists() ? Number(oldWalletSnap.data().totalIncome || 0) : 0;
 			let oldWExpenses = oldWalletSnap.exists() ? Number(oldWalletSnap.data().totalExpenses || 0) : 0;
@@ -155,7 +141,6 @@ export const transactionService = {
 				}
 			}
 
-			// === ШАГ 3: НАВЕШИВАНИЕ НОВЫХ ДАННЫХ И ПРОВЕРКА БАЛАНСА ===
 			let newWBalance =
 				oldData.walletId === newData.walletId
 					? oldWBalance
@@ -195,8 +180,6 @@ export const transactionService = {
 				});
 			}
 
-			// === ШАГ 4: СТРОГО ВСЕ ЗАПИСИ (WRITES) В САМОМ КОНЦЕ ===
-			// Если кошелек сменился, обновляем оба кошелька
 			if (oldData.walletId !== newData.walletId) {
 				if (oldWalletSnap.exists()) {
 					ts.update(oldWalletRef, {
@@ -213,7 +196,6 @@ export const transactionService = {
 					});
 				}
 			} else {
-				// Если кошелек остался прежним
 				if (newWalletSnap.exists()) {
 					ts.update(newWalletRef, {
 						amount: newWBalance,
@@ -223,7 +205,6 @@ export const transactionService = {
 				}
 			}
 
-			// Обновляем сам документ транзакции
 			const updatePayload: any = {
 				type: newData.type,
 				amount: Number(newData.amount),
@@ -264,19 +245,14 @@ export const transactionService = {
 			const amount = Number(oldData.amount || 0);
 
 			if (oldData.type === 'expense') {
-				// При удалении расхода: баланс возвращается, аналитика расходов уменьшается
 				balance += amount;
 				totalExpenses -= amount;
 			} else if (oldData.type === 'income') {
-				// При удалении дохода: баланс уменьшается, аналитика доходов уменьшается
 				balance -= amount;
 				totalIncome -= amount;
 			} else if (oldData.type === 'transfer') {
-				// При удалении перевода: отправителю возвращаем баланс, уменьшаем его расходы
 				balance += amount;
 				totalExpenses -= amount;
-
-				// Получателю уменьшаем баланс и доходы
 				const toWalletRef = doc(db, 'wallets', oldData.toWalletId);
 				const toWalletSnap = await ts.get(toWalletRef);
 				if (toWalletSnap.exists()) {
@@ -287,14 +263,12 @@ export const transactionService = {
 				}
 			}
 
-			// Обновляем статистику кошелька
 			ts.update(walletRef, {
 				amount: balance,
 				totalIncome: totalIncome,
 				totalExpenses: totalExpenses,
 			});
 
-			// Удаляем сам документ транзакции
 			ts.delete(txRef);
 		});
 	},
@@ -333,7 +307,6 @@ export const fetchMonthStats = async (uid: string, selectedDate: Date): Promise<
 			'Груд',
 		];
 
-		// ЯВНАЯ ТИПИЗАЦИЯ МАССИВА
 		const monthlyData: { month: string; key: string; income: number; expense: number }[] = [];
 
 		for (let i = 0; i < 12; i++) {
@@ -397,7 +370,6 @@ export const fetchYearStats = async (uid: string, selectedDate: Date): Promise<R
 		const querySnapshot = await getDocs(transactionsQuery);
 		const transactions: TransactionType[] = [];
 
-		// Группируем по годам (можно расширить диапазон, если нужно сравнение)
 		const yearlyData = [
 			{
 				year: year.toString(),
@@ -446,7 +418,6 @@ export const fetchCategories = async (uid: string) => {
 
 		return { success: true, data: categories };
 	} catch (error: any) {
-		console.error('Error fetching categories: ', error);
 		return { success: false, msg: error.message };
 	}
 };

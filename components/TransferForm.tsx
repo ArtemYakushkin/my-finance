@@ -10,8 +10,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { collection, doc, runTransaction, Timestamp } from 'firebase/firestore';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
+import { showMessage } from 'react-native-flash-message';
 import { Shadow } from 'react-native-shadow-2';
 import CalculatorModal from './CalculatorModal';
 import Input from './Input';
@@ -32,7 +33,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 	const { user } = useAuth();
 	const router = useRouter();
 
-	// Первичная инициализация стейта напрямую из oldData
 	const [amount, setAmount] = useState<number>(oldData?.amount || 0);
 	const [fromWallet, setFromWallet] = useState<string>(oldData?.fromWalletId || '');
 	const [toWallet, setToWallet] = useState<string>(oldData?.toWalletId || '');
@@ -41,7 +41,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showCalcModal, setShowCalcModal] = useState(false);
 
-	// Синхронизация данных при изменении oldData (редактирование)
 	useEffect(() => {
 		if (oldData) {
 			setAmount(Number(oldData.amount || 0));
@@ -57,7 +56,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 				}
 			}
 		} else {
-			// Если создаем новый перевод — сбрасываем в дефолт
 			setAmount(0);
 			setFromWallet('');
 			setToWallet('');
@@ -66,7 +64,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 		}
 	}, [oldData]);
 
-	// Оптимизируем фильтрацию через useMemo
 	const destinationWallets = useMemo(() => {
 		if (!fromWallet) return wallets;
 		return wallets.filter((w) => String(w.value) !== String(fromWallet));
@@ -93,17 +90,38 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 		const parsedAmount = amount;
 
 		if (!fromWallet || !toWallet) {
-			Alert.alert('Помилка', 'Виберіть обидва гаманці для переказу');
+			showMessage({
+				message: 'Помилка',
+				description: 'Виберіть обидва гаманці для переказу',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return;
 		}
+
 		if (fromWallet === toWallet) {
-			Alert.alert('Помилка', 'Рахунок списання та зарахування не можуть збігатися');
+			showMessage({
+				message: 'Помилка',
+				description: 'Рахунок списання та зарахування не можуть збігатися',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return;
 		}
+
 		if (isNaN(parsedAmount) || parsedAmount <= 0) {
-			Alert.alert('Помилка', 'Введіть коректну суму переказу');
+			showMessage({
+				message: 'Помилка',
+				description: 'Введіть коректну суму переказу',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return;
 		}
+
 		if (!user?.uid) return;
 
 		setLoading(true);
@@ -123,7 +141,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 				let fromBalance = Number(fromWalletDoc.data().amount || 0);
 				let toBalance = Number(toWalletDoc.data().amount || 0);
 
-				// Если это РЕДАКТИРОВАНИЕ, возвращаем старые балансы назад
 				if (oldData?.id) {
 					const oldAmount = Number(oldData.amount || 0);
 
@@ -156,7 +173,14 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 				}
 
 				if (fromBalance < parsedAmount) {
-					throw new Error('Недостатньо коштів на гаманці-відправнику');
+					showMessage({
+						message: 'Помилка',
+						description: 'Недостатньо коштів на гаманці-відправнику',
+						type: 'danger',
+						backgroundColor: colors.gradientMid,
+						color: colors.rose,
+					});
+					return;
 				}
 
 				transaction.update(fromWalletRef, { amount: fromBalance - parsedAmount });
@@ -189,14 +213,18 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 			resetForm();
 			router.replace('/(tabs)');
 		} catch (error: any) {
-			console.error('Помилка при переказі: ', error);
-			Alert.alert('Помилка', error.message || 'Не вдалося виконати переказ');
+			showMessage({
+				message: 'Помилка',
+				description: error.message || 'Не вдалося виконати переказ',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	// Экспортируем метод submit наружу через ref
 	useImperativeHandle(ref, () => ({
 		submit: () => {
 			handleSubmit();
@@ -205,7 +233,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 
 	return (
 		<View style={{ gap: 20, paddingBottom: 40 }}>
-			{/* Звідки */}
 			<View style={{ gap: 10 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 					Звідки (Рахунок списання)
@@ -258,7 +285,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 				</View>
 			</View>
 
-			{/* Куди */}
 			<View style={{ gap: 10 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 					Куди (Рахунок зарахування)
@@ -308,7 +334,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 				</View>
 			</View>
 
-			{/* Дата */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Дата
@@ -347,7 +372,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 				)}
 			</View>
 
-			{/* Сума */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Сума
@@ -365,7 +389,6 @@ const TransferForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, o
 				</View>
 			</View>
 
-			{/* Опис */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Опис

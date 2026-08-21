@@ -9,8 +9,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { Alert, Platform, Pressable, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
+import { showMessage } from 'react-native-flash-message';
 import { Shadow } from 'react-native-shadow-2';
 import CalculatorModal from './CalculatorModal';
 import Input from './Input';
@@ -26,7 +27,6 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 	const { user } = useAuth();
 	const router = useRouter();
 
-	// Инициализируем стейт сразу из oldData, если они есть
 	const [walletId, setWalletId] = useState(oldData?.walletId || '');
 	const [date, setDate] = useState(new Date());
 	const [amount, setAmount] = useState<number>(oldData?.amount || 0);
@@ -41,7 +41,6 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 		setDescription('');
 	};
 
-	// Синхронизация стейта при редактировании или создании новой транзакции
 	useEffect(() => {
 		if (oldData) {
 			setWalletId(oldData.walletId || '');
@@ -65,7 +64,6 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 		}
 	}, [oldData]);
 
-	// Безопасное прокидывание метода submit наружу через useImperativeHandle
 	useImperativeHandle(ref, () => ({
 		submit: () => {
 			handleSaveIncome();
@@ -83,8 +81,27 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 
 	const handleSaveIncome = async () => {
 		if (!user?.uid) return;
-		if (!walletId) return Alert.alert('Помилка', 'Виберіть гаманець зарахування');
-		if (amount <= 0) return Alert.alert('Помилка', 'Сума повинна бути більша за 0');
+		if (!walletId) {
+			showMessage({
+				message: 'Помилка',
+				description: 'Виберіть гаманець зарахування',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
+			return;
+		}
+
+		if (amount <= 0) {
+			showMessage({
+				message: 'Помилка',
+				description: 'Сума повинна бути більша за 0',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
+			return;
+		}
 
 		try {
 			setLoading(true);
@@ -107,7 +124,13 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 			resetForm();
 			router.replace('/(tabs)');
 		} catch (error: any) {
-			Alert.alert('Помилка', error.message || 'Щось пішло не так');
+			showMessage({
+				message: 'Помилка',
+				description: error.message || 'Щось пішло не так',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		} finally {
 			setLoading(false);
 		}
@@ -115,7 +138,6 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 
 	return (
 		<View style={{ gap: 20, paddingBottom: 40 }}>
-			{/* Гаманець зарахування */}
 			<View style={{ gap: 10 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 					Гаманець зарахування
@@ -170,7 +192,6 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 				</View>
 			</View>
 
-			{/* Дата */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Дата
@@ -211,7 +232,6 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 				)}
 			</View>
 
-			{/* Сума */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Сума
@@ -229,7 +249,6 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 				</View>
 			</View>
 
-			{/* Опис */}
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Опис

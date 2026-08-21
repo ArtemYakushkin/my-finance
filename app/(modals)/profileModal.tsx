@@ -13,7 +13,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { showMessage } from 'react-native-flash-message';
 
 type UserDataType = {
 	name: string;
@@ -55,7 +56,13 @@ const ProfileModal = () => {
 		const { name, image } = userData;
 
 		if (!name.trim()) {
-			Alert.alert('Користувач', 'Будь ласка, заповніть усі поля');
+			showMessage({
+				message: 'Користувач',
+				description: 'Будь ласка, заповніть усі поля',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 			return;
 		}
 		setLoading(true);
@@ -65,7 +72,13 @@ const ProfileModal = () => {
 		if (res.success) {
 			router.replace('/(tabs)/profile');
 		} else {
-			Alert.alert('Користувач', res.msg || 'Помилка оновлення');
+			showMessage({
+				message: 'Користувач',
+				description: res.msg || 'Помилка оновлення',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		}
 	};
 

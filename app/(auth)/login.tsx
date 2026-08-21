@@ -51,9 +51,6 @@ const Login = () => {
 				case 'auth/user-disabled':
 					errorMessage = 'Цей обліковий запис було заблоковано';
 					break;
-				default:
-					console.log('Firebase auth error:', error.code);
-					break;
 			}
 			showMessage({
 				message: 'Помилка',

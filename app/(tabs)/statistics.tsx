@@ -15,6 +15,7 @@ import { Timestamp } from 'firebase/firestore';
 import { CaretLeft, CaretRight, Icon } from 'phosphor-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { showMessage } from 'react-native-flash-message';
 import { PieChart } from 'react-native-gifted-charts';
 import { Shadow } from 'react-native-shadow-2';
 
@@ -51,7 +52,6 @@ const Statistics = () => {
 		transactions: [],
 	});
 
-	// 1. Загружаем пользовательские категории один раз при монтировании юзера
 	useEffect(() => {
 		const loadUserCategories = async () => {
 			if (!user?.uid) return;
@@ -64,7 +64,6 @@ const Statistics = () => {
 		loadUserCategories();
 	}, [user?.uid]);
 
-	// 2. Метод загрузки основных статистических данных
 	const loadData = async () => {
 		if (!user?.uid) return;
 		setLoading(true);
@@ -81,15 +80,28 @@ const Statistics = () => {
 					stats: res.data.stats || [],
 					transactions: res.data.transactions || [],
 				});
+			} else {
+				showMessage({
+					message: 'Помилка',
+					description: res?.msg || 'Не вдалося завантажити статистику',
+					type: 'danger',
+					backgroundColor: colors.gradientMid,
+					color: colors.rose,
+				});
 			}
 		} catch (error) {
-			console.error('Error loading stats:', error);
+			showMessage({
+				message: 'Помилка',
+				description: "Не вдалося завантажити статистику. Перевірте з'єднання",
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	// 3. Используем только useFocusEffect для контроля обновлений экрана
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
@@ -142,7 +154,6 @@ const Statistics = () => {
 	const getSubCategoryData = () => {
 		const transactions = data.transactions || [];
 
-		// 1. Группируем суммы по ID подкатегорий
 		const grouped = transactions.reduce(
 			(acc, item) => {
 				if (item.type === 'expense') {
@@ -154,24 +165,16 @@ const Statistics = () => {
 			{} as Record<string, number>,
 		);
 
-		// 2. Маппим сгруппированные ID в человекочитаемые данные
 		return Object.keys(grouped)
 			.map((catId) => {
-				// Ищем подкатегорию в userCategories.
-				// Проверьте, какое поле у вас отвечает за ID документа (id, uid или value)
 				const userCat = userCategories.find((c: any) => c.id === catId || c.value === catId);
-
-				// Определяем, к какой глобальной группе (База, Хочу, Резерв) она относится
 				const groupKey = userCat?.group || transactions.find((t) => t.category === catId)?.categoryGroup;
 				const mainGroup = categoryGroups.find((g) => g.value === groupKey);
 
 				return {
-					// Если подкатегория найдена в базе, берем её label/name, иначе пишем "Інше"
 					name: userCat?.label || userCat?.name || 'Інше',
 					amount: grouped[catId],
-					// Берем родную иконку подкатегории, если её нет — иконку родительской группы
 					icon: userCat?.icon || mainGroup?.icon,
-					// Берем цвет родительской группы для сохранения логики дизайна
 					color: mainGroup?.color || colors.neutral500,
 				};
 			})

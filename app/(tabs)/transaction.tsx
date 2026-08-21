@@ -47,15 +47,11 @@ const transactionColors: Record<string, string> = {
 const Transaction = () => {
 	const { user } = useAuth();
 	const navigation = useNavigation();
-
-	// Получаем параметры роута
 	const params = useLocalSearchParams<{ editData?: string }>();
 
-	// Храним спарсенные данные в локальном стейте, чтобы иметь возможность его обнулить
 	const [parsedOldData, setParsedOldData] = useState<any>(null);
 	const [activeType, setActiveType] = useState<string>('expense');
 
-	// Эффект для безопасного парсинга входящих параметров редактирования
 	useEffect(() => {
 		if (params?.editData) {
 			try {
@@ -64,8 +60,7 @@ const Transaction = () => {
 				if (data?.type) {
 					setActiveType(data.type);
 				}
-			} catch (e) {
-				console.error('Помилка парсингу editData:', e);
+			} catch {
 				setParsedOldData(null);
 			}
 		} else {
@@ -76,12 +71,10 @@ const Transaction = () => {
 
 	const isEditing = !!parsedOldData;
 
-	// СБРОС ПАРАМЕТРОВ ПРИ УХОДЕ С ЭКРАНА (Очищает URL от editData)
 	useEffect(() => {
 		const unsubscribe = navigation.addListener('blur', () => {
 			setParsedOldData(null);
 			setActiveType('expense');
-			// Принудительно чистим параметры в самом роутере Expo, чтобы при следующем входе стек был чист
 			navigation.setParams({ editData: undefined } as any);
 		});
 		return unsubscribe;
@@ -95,7 +88,6 @@ const Transaction = () => {
 
 	const formRef = useRef<FormRefActions>(null);
 
-	// Подписка на кошельки
 	useEffect(() => {
 		if (!user?.uid) return;
 		const q = query(collection(db, 'wallets'), where('uid', '==', user.uid));
@@ -115,15 +107,13 @@ const Transaction = () => {
 				setWallets(walletsData);
 				setWalletsLoading(false);
 			},
-			(error) => {
-				console.error(error);
+			() => {
 				setWalletsLoading(false);
 			},
 		);
 		return () => unsubscribe();
 	}, [user?.uid]);
 
-	// Подписка на категории
 	useEffect(() => {
 		if (!user?.uid) return;
 		const q = query(collection(db, 'categories'), where('uid', '==', user.uid));
@@ -143,8 +133,7 @@ const Transaction = () => {
 				setCategories(categoriesData);
 				setCategoriesLoading(false);
 			},
-			(error) => {
-				console.error(error);
+			() => {
 				setCategoriesLoading(false);
 			},
 		);

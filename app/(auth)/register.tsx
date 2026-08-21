@@ -81,10 +81,7 @@ const Register = () => {
 					errorMessage = 'Пароль надто слабкий. Спробуйте інший';
 					break;
 				case 'auth/network-request-failed':
-					errorMessage = 'Проgeneric поєднання з мережею. Перевірте інтернет';
-					break;
-				default:
-					console.log('Firebase auth error:', error.code);
+					errorMessage = "Проблема з мережею. Перевірте з'єднання з інтернетом";
 					break;
 			}
 			showMessage({

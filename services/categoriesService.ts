@@ -11,8 +11,10 @@ export const updateCategoriesOrder = async (updatedCategories: { id: string; ord
 		await batch.commit();
 		return { success: true };
 	} catch (error: any) {
-		console.error('Помилка оновлення порядку:', error);
-		return { success: false };
+		return {
+			success: false,
+			msg: error.message || 'Не вдалося оновити порядок категорій',
+		};
 	}
 };
 
@@ -80,7 +82,9 @@ export const deleteCategoryAndRefundBalance = async (uid: string, categoryName: 
 
 		return { success: true };
 	} catch (error) {
-		console.error('Помилка при видаленні категорії та перерахунку:', error);
-		return { success: false, msg: error instanceof Error ? error.message : 'Невідома помилка' };
+		return {
+			success: false,
+			msg: error instanceof Error ? error.message : 'Не вдалося видалити категорію',
+		};
 	}
 };

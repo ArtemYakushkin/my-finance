@@ -1,3 +1,4 @@
+import { ConfirmModal } from '@/components/ConfirmModal';
 import Header from '@/components/Header';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
@@ -10,8 +11,9 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import * as Icons from 'phosphor-react-native';
-import React from 'react';
-import { ActivityIndicator, Alert, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
+import { showMessage } from 'react-native-flash-message';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Shadow } from 'react-native-shadow-2';
 
@@ -28,6 +30,7 @@ const defaultAvatar = require('../../assets/images/avatar.png');
 const Profile = () => {
 	const { user, loading } = useAuth();
 	const router = useRouter();
+	const [confirmVisible, setConfirmVisible] = useState(false);
 
 	const accountOptions: accountOptionType[] = [
 		{
@@ -65,24 +68,26 @@ const Profile = () => {
 
 	const handlePress = (item: accountOptionType) => {
 		if (item.title === 'Вийти') {
-			Alert.alert('Вихід з аккаунта', 'Ви дійсно хочете вийти?', [
-				{ text: 'Скасувати', style: 'cancel' },
-				{
-					text: 'Вийти',
-					style: 'destructive',
-					onPress: async () => {
-						try {
-							await signOut(auth);
-						} catch (error) {
-							Alert.alert('Помилка', 'Не вдалося вийти з системи.');
-						}
-					},
-				},
-			]);
+			setConfirmVisible(true);
 			return;
 		}
 		if (item.routeName) {
 			router.push(item.routeName as any);
+		}
+	};
+
+	const handleLogout = async () => {
+		setConfirmVisible(false);
+		try {
+			await signOut(auth);
+		} catch (error: any) {
+			showMessage({
+				message: 'Помилка',
+				description: 'Не вдалося вийти з системи.',
+				type: 'danger',
+				backgroundColor: colors.gradientMid,
+				color: colors.rose,
+			});
 		}
 	};
 
@@ -160,6 +165,16 @@ const Profile = () => {
 						</Shadow>
 					</Shadow>
 				</View>
+
+				<ConfirmModal
+					visible={confirmVisible}
+					title="Вихід з аккаунта"
+					message="Ви дійсно хочете вийти?"
+					confirmText="Вийти"
+					cancelText="Скасувати"
+					onConfirm={handleLogout}
+					onCancel={() => setConfirmVisible(false)}
+				/>
 			</View>
 		</ScreenWrapper>
 	);
