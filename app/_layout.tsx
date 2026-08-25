@@ -64,6 +64,13 @@ function MainLayout() {
 			/>
 
 			<Stack.Screen
+				name="privacy"
+				options={{
+					animation: 'slide_from_right',
+				}}
+			/>
+
+			<Stack.Screen
 				name="(modals)/walletModal"
 				options={{
 					presentation: 'transparentModal',

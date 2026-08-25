@@ -12,7 +12,7 @@ import { useAuth } from '@/context/useAuth';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, ScrollView, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 
 export type FormRefActions = {
 	submit: () => void;
@@ -234,30 +234,23 @@ const Transaction = () => {
 					)}
 
 					<View style={{ marginBottom: 10 }}>{renderActiveForm()}</View>
-				</ScrollView>
 
-				<View
-					style={{
-						paddingHorizontal: 16,
-						paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-						paddingTop: 10,
-						backgroundColor: 'transparent',
-					}}
-				>
-					<Button
-						onPress={handleMainSubmit}
-						style={{ width: '100%' }}
-						disabled={loading || walletsLoading || categoriesLoading}
+					<View
+						style={{
+							paddingHorizontal: 5,
+						}}
 					>
-						{loading ? (
-							<ActivityIndicator color={colors.primaryLight} />
-						) : (
-							<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
-								{isEditing ? 'Зберегти' : 'Створити'}
-							</Typo>
-						)}
-					</Button>
-				</View>
+						<Button onPress={handleMainSubmit} disabled={loading || walletsLoading || categoriesLoading}>
+							{loading ? (
+								<ActivityIndicator color={colors.primaryLight} />
+							) : (
+								<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
+									{isEditing ? 'Зберегти' : 'Створити'}
+								</Typo>
+							)}
+						</Button>
+					</View>
+				</ScrollView>
 			</View>
 		</ScreenWrapper>
 	);

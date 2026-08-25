@@ -307,7 +307,6 @@ const Statistics = () => {
 												}}
 											/>
 
-											{/* Кастомный вывод четких сумм без градации */}
 											<View style={globalStyles.statPieLegend}>
 												{incomeExpensePieData.map((item, idx) => (
 													<View key={idx} style={globalStyles.statPieLegendItem}>
@@ -317,11 +316,9 @@ const Statistics = () => {
 																{ backgroundColor: item.color },
 															]}
 														/>
-														<View style={{ flex: 1, marginRight: 10 }}>
-															<Typo size={13} color={colors.neutral300}>
-																{item.text}
-															</Typo>
-														</View>
+														<Typo size={13} color={colors.neutral300}>
+															{item.text}
+														</Typo>
 														<Typo size={13} fontWeight={'700'}>
 															{currencySymbol}
 															{item.value.toLocaleString()}

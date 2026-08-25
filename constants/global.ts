@@ -710,4 +710,48 @@ export const globalStyles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: '#242427',
 	},
+
+	// ----Privacy----
+
+	title: {
+		fontSize: 24,
+		fontWeight: '700',
+		color: colors.neutral100,
+		marginBottom: 6,
+	},
+	updateDate: {
+		fontSize: 13,
+		color: colors.neutral400,
+		marginBottom: 24,
+	},
+	section: {
+		marginBottom: 20,
+	},
+	sectionTitle: {
+		fontSize: 16,
+		fontWeight: '600',
+		color: colors.neutral100,
+		marginBottom: 8,
+	},
+	paragraph: {
+		fontSize: 14,
+		lineHeight: 22,
+		color: colors.neutral300,
+	},
+	bulletPoint: {
+		fontSize: 14,
+		lineHeight: 22,
+		color: colors.neutral300,
+		marginLeft: 8,
+		marginTop: 4,
+	},
+	bold: {
+		fontWeight: '600',
+		color: colors.neutral100,
+	},
+	actionsContainer: {
+		marginTop: 16,
+		gap: 12,
+		paddingBottom: 24,
+	},
 });

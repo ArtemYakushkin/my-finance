@@ -48,6 +48,7 @@ const Profile = () => {
 		{
 			title: 'Конфіденційність',
 			icon: <Icons.Lock size={24} color={colors.white} weight="fill" />,
+			routeName: '/privacy',
 			bgColor: colors.neutral600,
 		},
 		{
