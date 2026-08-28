@@ -71,6 +71,13 @@ function MainLayout() {
 			/>
 
 			<Stack.Screen
+				name="planner"
+				options={{
+					animation: 'slide_from_right',
+				}}
+			/>
+
+			<Stack.Screen
 				name="(modals)/walletModal"
 				options={{
 					presentation: 'transparentModal',
@@ -121,6 +128,14 @@ function MainLayout() {
 			/>
 			<Stack.Screen
 				name="(modals)/detailModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+
+			<Stack.Screen
+				name="(modals)/plannedModal"
 				options={{
 					presentation: 'transparentModal',
 					animation: 'slide_from_bottom',

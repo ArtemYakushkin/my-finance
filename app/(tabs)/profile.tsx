@@ -35,25 +35,31 @@ const Profile = () => {
 	const accountOptions: accountOptionType[] = [
 		{
 			title: 'Редагувати профіль',
-			icon: <Icons.User size={24} color={colors.white} weight="fill" />,
+			icon: <Icons.User size={21} color={colors.white} weight="fill" />,
 			routeName: '/(modals)/profileModal',
 			bgColor: '#6366f1',
 		},
 		{
 			title: 'Налаштування',
-			icon: <Icons.GearSix size={24} color={colors.white} weight="fill" />,
+			icon: <Icons.GearSix size={21} color={colors.white} weight="fill" />,
 			routeName: '/settings',
 			bgColor: '#059669',
 		},
 		{
+			title: 'Планування',
+			icon: <Icons.CalendarDots size={21} color={colors.white} weight="fill" />,
+			routeName: '/planner',
+			bgColor: '#ead200ff',
+		},
+		{
 			title: 'Конфіденційність',
-			icon: <Icons.Lock size={24} color={colors.white} weight="fill" />,
+			icon: <Icons.Lock size={21} color={colors.white} weight="fill" />,
 			routeName: '/privacy',
 			bgColor: colors.neutral600,
 		},
 		{
 			title: 'Вийти',
-			icon: <Icons.Power size={24} color={colors.white} weight="fill" />,
+			icon: <Icons.Power size={21} color={colors.white} weight="fill" />,
 			bgColor: '#e11d48',
 		},
 	];

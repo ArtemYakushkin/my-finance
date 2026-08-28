@@ -352,6 +352,7 @@ export const globalStyles = StyleSheet.create({
 	profileOptions: {
 		borderRadius: 20,
 		paddingHorizontal: 15,
+		paddingVertical: 8,
 		backgroundColor: '#171921',
 		borderWidth: 1,
 		borderColor: 'rgba(255, 255, 255, 0.03)',
@@ -360,11 +361,11 @@ export const globalStyles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 15,
-		paddingVertical: 12,
+		paddingVertical: 8,
 	},
 	profileOptionsIcon: {
-		height: 40,
-		width: 40,
+		height: 35,
+		width: 35,
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderRadius: 12,
@@ -753,5 +754,44 @@ export const globalStyles = StyleSheet.create({
 		marginTop: 16,
 		gap: 12,
 		paddingBottom: 24,
+	},
+
+	// ----Calendar Modal----
+
+	calendarOverlay: {
+		flex: 1,
+		backgroundColor: 'rgba(0, 0, 0, 0.9)',
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 12,
+	},
+	calendarHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		marginBottom: 12,
+	},
+	calendarWeekDays: {
+		flexDirection: 'row',
+		marginBottom: 10,
+	},
+	calendarDayCell: {
+		width: `${100 / 7}%`,
+		height: 44,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	calendarDaysGrid: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+	},
+	calendarSelectedCell: {
+		backgroundColor: colors.primaryLight,
+		borderRadius: 12,
+	},
+	calendarTodayCell: {
+		borderWidth: 1,
+		borderColor: colors.primaryLight,
+		borderRadius: 12,
 	},
 });
