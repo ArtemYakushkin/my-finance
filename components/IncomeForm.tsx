@@ -5,15 +5,15 @@ import { SHADOW_DROPDOWN, SHADOW_INPUT } from '@/constants/shadow';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
 import { transactionService } from '@/services/transactionService';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { Platform, Pressable, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { showMessage } from 'react-native-flash-message';
 import { Shadow } from 'react-native-shadow-2';
 import CalculatorModal from './CalculatorModal';
+import CustomDatePickerModal from './CustomDatePickerModal';
 import Input from './Input';
 import Typo from './Typo';
 
@@ -196,40 +196,17 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 					Дата
 				</Typo>
-
-				{!showDatePicker && (
-					<View style={globalStyles.modalInputContainer}>
-						<Shadow {...SHADOW_INPUT.light} style={{ alignSelf: 'stretch' }}>
-							<Shadow {...SHADOW_INPUT.dark} style={{ alignSelf: 'stretch' }}>
-								<LinearGradient {...INPUT_GRADIENT} style={globalStyles.modalInputInner}>
-									<Pressable style={globalStyles.modalInput} onPress={() => setShowDatePicker(true)}>
-										<Typo size={14}>{date.toLocaleDateString('uk-UA')}</Typo>
-									</Pressable>
-								</LinearGradient>
-							</Shadow>
+				<View style={globalStyles.modalInputContainer}>
+					<Shadow {...SHADOW_INPUT.light} style={{ alignSelf: 'stretch' }}>
+						<Shadow {...SHADOW_INPUT.dark} style={{ alignSelf: 'stretch' }}>
+							<LinearGradient {...INPUT_GRADIENT} style={globalStyles.modalInputInner}>
+								<Pressable style={globalStyles.modalInput} onPress={() => setShowDatePicker(true)}>
+									<Typo size={14}>{date.toLocaleDateString('uk-UA')}</Typo>
+								</Pressable>
+							</LinearGradient>
 						</Shadow>
-					</View>
-				)}
-
-				{showDatePicker && (
-					<View>
-						<DateTimePicker
-							themeVariant="dark"
-							value={date}
-							textColor={colors.white}
-							mode="date"
-							display="spinner"
-							onChange={handleDateChange}
-						/>
-						{Platform.OS === 'ios' && (
-							<TouchableOpacity onPress={() => setShowDatePicker(false)}>
-								<Typo size={15} fontWeight={500} color={colors.primary}>
-									Ok
-								</Typo>
-							</TouchableOpacity>
-						)}
-					</View>
-				)}
+					</Shadow>
+				</View>
 			</View>
 
 			<View style={{ gap: 10, paddingHorizontal: 5 }}>
@@ -263,6 +240,16 @@ const IncomeForm = forwardRef<FormRefActions, Props>(({ wallets, setLoading, old
 				onSelectAmount={(value: number) => {
 					setAmount(value);
 					setShowCalcModal(false);
+				}}
+			/>
+
+			<CustomDatePickerModal
+				isVisible={showDatePicker}
+				initialDate={date}
+				onClose={() => setShowDatePicker(false)}
+				onSelectDate={(newDate: Date) => {
+					setDate(newDate);
+					setShowDatePicker(false);
 				}}
 			/>
 		</View>

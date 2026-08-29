@@ -9,7 +9,7 @@ import useFetchData from '@/hooks/useFetchData';
 import { useRouter } from 'expo-router';
 import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
 const Home = () => {
 	const { user } = useAuth();
@@ -48,12 +48,9 @@ const Home = () => {
 						</Typo>
 					</View>
 
-					<TouchableOpacity
-						onPress={() => router.push('/(modals)/searchModal')}
-						style={globalStyles.searchIcon}
-					>
+					<Pressable onPress={() => router.push('/(modals)/searchModal')} style={globalStyles.searchIcon}>
 						<Icons.MagnifyingGlass size={27} color={colors.neutral200} weight="bold" />
-					</TouchableOpacity>
+					</Pressable>
 				</View>
 
 				<ScrollView contentContainerStyle={globalStyles.scrollViewStyle} showsVerticalScrollIndicator={false}>

@@ -47,10 +47,12 @@ const deleteUserDataAndAccount = async (): Promise<{ success: boolean; error?: s
 		const transactionsQuery = query(collection(db, 'transactions'), where('uid', '==', uid));
 		const walletsQuery = query(collection(db, 'wallets'), where('uid', '==', uid));
 		const categoriesQuery = query(collection(db, 'categories'), where('uid', '==', uid));
+		const plannedQuery = query(collection(db, 'planned_transactions'), where('uid', '==', uid));
 
 		await deleteQueryBatch(transactionsQuery);
 		await deleteQueryBatch(walletsQuery);
 		await deleteQueryBatch(categoriesQuery);
+		await deleteQueryBatch(plannedQuery);
 
 		const userDocRef = doc(db, 'users', uid);
 		await deleteDoc(userDocRef).catch(() => {});
