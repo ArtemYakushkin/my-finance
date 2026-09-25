@@ -41,20 +41,20 @@ export const ConfirmModal = ({
 					<Typo
 						size={14}
 						color={colors.neutral300}
-						style={{ marginBottom: 24, textAlign: 'center', lineHeight: 20 }}
+						style={{ marginBottom: 30, textAlign: 'center', lineHeight: 20 }}
 					>
 						{message}
 					</Typo>
 
 					<View style={{ flexDirection: 'row', gap: 12, justifyContent: 'center' }}>
-						<Button onPress={onCancel}>
-							<Typo size={14} fontWeight={500} color={colors.rose}>
+						<Button style={{ flex: 1 }} onPress={onCancel}>
+							<Typo size={16} fontWeight={500} color={colors.rose}>
 								{cancelText}
 							</Typo>
 						</Button>
 
-						<Button onPress={onConfirm}>
-							<Typo size={14} fontWeight={500} color={colors.primary}>
+						<Button style={{ flex: 1 }} onPress={onConfirm}>
+							<Typo size={16} fontWeight={500} color={colors.primary}>
 								{confirmText}
 							</Typo>
 						</Button>

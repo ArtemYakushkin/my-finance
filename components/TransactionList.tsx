@@ -4,7 +4,6 @@ import { categoryGroups, TransactionType } from '@/constants/types';
 import { useAuth } from '@/context/useAuth';
 import { getCurrencySymbol } from '@/utils/common';
 import { FlashList } from '@shopify/flash-list';
-import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { Timestamp } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
@@ -156,7 +155,7 @@ const TransactionItem = ({ item, index, handleClick, categories, wallets }: Tran
 	return (
 		<View style={{ marginBottom: 12 }}>
 			<Pressable onPress={() => handleClick(item)}>
-				<BlurView intensity={25} tint="dark" style={globalStyles.transRow}>
+				<View style={globalStyles.transRow}>
 					<View style={[globalStyles.transIcon, { backgroundColor: category.bgColor }]}>
 						{IconComponent && <IconComponent size={22} weight="fill" color={colors.white} />}
 					</View>
@@ -180,7 +179,7 @@ const TransactionItem = ({ item, index, handleClick, categories, wallets }: Tran
 							{dateStr}
 						</Typo>
 					</View>
-				</BlurView>
+				</View>
 			</Pressable>
 		</View>
 	);

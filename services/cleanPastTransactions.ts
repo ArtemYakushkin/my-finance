@@ -1,7 +1,6 @@
 import { db } from '@/config/firebase';
-import { colors } from '@/constants/theme';
+import { showErrorToast, showSuccessToast } from '@/utils/showToast';
 import { collection, getDocs, query, where, writeBatch } from 'firebase/firestore';
-import { showMessage } from 'react-native-flash-message';
 
 export const cleanupExpiredTransactions = async (userId: string) => {
 	try {
@@ -33,22 +32,10 @@ export const cleanupExpiredTransactions = async (userId: string) => {
 
 			if (deletedCount > 0) {
 				await batch.commit();
-				showMessage({
-					message: 'Успіх',
-					description: `Видалено застарілих транзакцій: ${deletedCount}`,
-					type: 'success',
-					backgroundColor: colors.gradientMid,
-					color: colors.primary,
-				});
+				showSuccessToast(`Видалено застарілих транзакцій: ${deletedCount}`);
 			}
 		}
 	} catch (error) {
-		showMessage({
-			message: 'Помилка',
-			description: `Помилка автоматичного видалення: ${error}`,
-			type: 'danger',
-			backgroundColor: colors.gradientMid,
-			color: colors.rose,
-		});
+		showErrorToast(`Помилка автоматичного видалення: ${error}`);
 	}
 };

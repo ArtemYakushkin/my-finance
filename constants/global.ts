@@ -4,14 +4,14 @@ import { Platform, StyleSheet } from 'react-native';
 export const globalStyles = StyleSheet.create({
 	mainContainer: {
 		flex: 1,
-		justifyContent: 'center',
+		justifyContent: 'space-between',
 		alignItems: 'center',
 		backgroundColor: 'transparent',
 	},
 
 	logo: {
-		height: '20%',
-		width: '40%',
+		height: 'auto',
+		width: 150,
 		aspectRatio: 1,
 	},
 
@@ -47,12 +47,12 @@ export const globalStyles = StyleSheet.create({
 		borderTopWidth: 1,
 		borderLeftWidth: 0.5,
 		borderRightWidth: 0.5,
-		borderColor: 'rgba(255, 255, 255, 0.1)',
+		borderColor: colors.neutral700,
 	},
 	modalHandle: {
 		width: 40,
 		height: 5,
-		backgroundColor: 'rgba(255,255,255,0.2)',
+		backgroundColor: colors.neutral600,
 		borderRadius: 5,
 		alignSelf: 'center',
 		marginTop: 12,
@@ -83,7 +83,7 @@ export const globalStyles = StyleSheet.create({
 	},
 	welcomeBtnContainer: {
 		width: '100%',
-		paddingHorizontal: 20,
+		paddingHorizontal: 10,
 	},
 
 	// ----Auth----
@@ -91,11 +91,11 @@ export const globalStyles = StyleSheet.create({
 	authContainer: {
 		flex: 1,
 		gap: 30,
-		paddingRight: 20,
-		paddingLeft: 20,
+		paddingRight: 10,
+		paddingLeft: 10,
 	},
 	authForm: {
-		gap: 20,
+		gap: 24,
 	},
 	authFooter: {
 		flexDirection: 'row',
@@ -112,25 +112,38 @@ export const globalStyles = StyleSheet.create({
 		alignItems: 'center',
 		marginBottom: 15,
 	},
-	searchIcon: {
-		backgroundColor: colors.gradientStart,
-		padding: 10,
+	avatar: {
+		overflow: 'hidden',
+		width: 38,
+		height: 38,
 		borderRadius: 50,
-		borderColor: colors.neutral200,
+		borderColor: colors.neutral500,
+		borderWidth: 1,
+	},
+	actionIcon: {
+		padding: 8,
+		borderRadius: 50,
+		borderColor: colors.neutral500,
 		borderWidth: 1,
 	},
 	scrollViewStyle: {
 		marginTop: 10,
-		paddingBottom: 20,
+		paddingBottom: 60,
 		gap: 15,
 	},
 	addButton: {
-		height: 50,
-		width: 50,
-		borderRadius: 100,
+		zIndex: 100,
+		height: 55,
+		width: 55,
+		borderRadius: 12,
+		borderWidth: 2,
+		borderColor: colors.primaryLight,
+		backgroundColor: colors.gradientMid,
+		alignItems: 'center',
+		justifyContent: 'center',
 		position: 'absolute',
-		bottom: 30,
-		right: 20,
+		bottom: 32,
+		right: 12,
 	},
 
 	// ----Card----
@@ -174,12 +187,10 @@ export const globalStyles = StyleSheet.create({
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		gap: 12,
-		backgroundColor: 'rgba(41, 46, 58, 0.07)',
-		padding: 12,
-		borderRadius: 17,
-		overflow: 'hidden',
-		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.1)',
+		paddingBottom: 12,
+		paddingHorizontal: 6,
+		borderBottomWidth: 0.6,
+		borderColor: colors.neutral500,
 	},
 	transIcon: {
 		height: 44,
@@ -197,6 +208,53 @@ export const globalStyles = StyleSheet.create({
 		alignItems: 'flex-end',
 		gap: 3,
 	},
+	transWalletItem: {
+		width: '100%',
+		paddingVertical: 8,
+		borderRadius: 12,
+		justifyContent: 'center',
+		alignItems: 'center',
+		borderWidth: 1,
+		borderColor: colors.neutral500,
+		backgroundColor: colors.gradientMid,
+	},
+	transWalletScrollBar: {
+		height: 4,
+		width: 60,
+		backgroundColor: colors.neutral800,
+		borderRadius: 2,
+		alignSelf: 'center',
+		marginTop: 10,
+		overflow: 'hidden',
+	},
+	transCatContainer: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 8,
+	},
+	transCatItem: {
+		width: '23%',
+		height: 90,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	transCatIcon: {
+		padding: 7,
+		borderRadius: 20,
+		borderWidth: 1,
+		borderColor: colors.neutral400,
+	},
+	transCatExpandButton: {
+		borderWidth: 1,
+		borderRadius: 12,
+		borderColor: colors.neutral500,
+		backgroundColor: colors.gradientMid,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 6,
+		paddingVertical: 4,
+	},
 
 	// ----Statistics----
 
@@ -206,9 +264,9 @@ export const globalStyles = StyleSheet.create({
 	},
 	statSegmentWrap: {
 		flexDirection: 'row',
-		height: 46,
+		height: 54,
 		borderRadius: 15,
-		padding: 4,
+		padding: 6,
 		backgroundColor: colors.gradientMid,
 	},
 	statSegmentBtn: {
@@ -217,7 +275,7 @@ export const globalStyles = StyleSheet.create({
 	},
 	statSegmentActive: {
 		flex: 1,
-		backgroundColor: '#1c1f26',
+		backgroundColor: colors.gradientStart,
 		borderRadius: 12,
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -228,19 +286,17 @@ export const globalStyles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	statPieInner: {
-		padding: 15,
-		borderRadius: 20,
 		minHeight: 200,
 		alignItems: 'center',
+		paddingHorizontal: 6,
 	},
 	statPieContainer: {
+		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 15,
 		width: '100%',
 	},
 	statPieLegend: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
 		justifyContent: 'center',
 		gap: 12,
 	},
@@ -264,8 +320,8 @@ export const globalStyles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		padding: 12,
-		borderRadius: 15,
+		paddingHorizontal: 12,
+		paddingVertical: 6,
 	},
 	statCategoryInfo: {
 		flexDirection: 'row',
@@ -312,11 +368,10 @@ export const globalStyles = StyleSheet.create({
 		alignItems: 'center',
 		marginBottom: 17,
 		padding: 12,
-		backgroundColor: 'rgba(41, 46, 58, 0.07)',
 		borderRadius: 17,
 		overflow: 'hidden',
-		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.1)',
+		borderWidth: 0.7,
+		borderColor: colors.neutral500,
 	},
 	walletImage: {
 		height: 45,
@@ -341,7 +396,7 @@ export const globalStyles = StyleSheet.create({
 		width: 135,
 		borderRadius: 200,
 		borderWidth: 1.5,
-		borderColor: 'rgba(255, 255, 255, 0.05)',
+		borderColor: colors.neutral500,
 	},
 	profileNameContainer: {
 		gap: 4,
@@ -351,17 +406,18 @@ export const globalStyles = StyleSheet.create({
 	},
 	profileOptions: {
 		borderRadius: 20,
-		paddingHorizontal: 15,
-		paddingVertical: 8,
-		backgroundColor: '#171921',
+		paddingHorizontal: 12,
+		paddingVertical: 2,
+		backgroundColor: colors.gradientMid,
 		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.03)',
+		borderColor: colors.neutral500,
 	},
 	profileOptionsItem: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 15,
-		paddingVertical: 8,
+		paddingVertical: 12,
+		paddingHorizontal: 6,
 	},
 	profileOptionsIcon: {
 		height: 35,
@@ -372,7 +428,7 @@ export const globalStyles = StyleSheet.create({
 	},
 	profileOptionsSeparator: {
 		height: 0.5,
-		backgroundColor: 'rgba(255, 255, 255, 0.06)',
+		backgroundColor: colors.neutral500,
 		marginHorizontal: 5,
 	},
 
@@ -380,7 +436,8 @@ export const globalStyles = StyleSheet.create({
 
 	modalForm: {
 		gap: 20,
-		marginTop: 15,
+		marginTop: 30,
+		marginBottom: 30,
 	},
 	modalBtnWrap: {
 		flexDirection: 'row',
@@ -409,16 +466,16 @@ export const globalStyles = StyleSheet.create({
 	modalInputContainer: {
 		alignSelf: 'stretch',
 		overflow: 'hidden',
-		borderRadius: 17,
+		borderRadius: 12,
 		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.03)',
+		borderColor: colors.neutral500,
 	},
 	modalInputInner: {
 		flexDirection: 'row',
 		height: 54,
 		alignItems: 'center',
 		gap: 10,
-		borderRadius: 17,
+		borderRadius: 12,
 	},
 	modalInput: {
 		width: '100%',
@@ -482,8 +539,8 @@ export const globalStyles = StyleSheet.create({
 	},
 	calcDisplayWrapper: {
 		marginHorizontal: 20,
-		marginBottom: 20,
-		marginTop: 20,
+		marginBottom: 40,
+		marginTop: 40,
 	},
 	calcDisplayInner: {
 		alignItems: 'center',
@@ -506,8 +563,8 @@ export const globalStyles = StyleSheet.create({
 		width: '100%',
 	},
 	calcButtonWrapper: {
-		width: '32%',
-		marginVertical: 2,
+		width: '23%',
+		marginVertical: 5,
 	},
 	calcButtonDouble: {
 		width: '49%',
@@ -556,25 +613,28 @@ export const globalStyles = StyleSheet.create({
 		justifyContent: 'space-between',
 		paddingVertical: 15,
 		borderBottomWidth: 0.5,
-		borderBottomColor: 'rgba(255,255,255,0.05)',
+		borderBottomColor: colors.neutral500,
 	},
 	settingsInfo: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 10,
 	},
-	settingsDaysScroll: {
-		gap: 10,
+	settingsDaysGrid: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 8,
+		justifyContent: 'space-between',
 	},
 	settingsDayButton: {
 		width: 45,
 		height: 45,
-		backgroundColor: '#171921',
+		backgroundColor: colors.gradientMid,
 		borderRadius: 12,
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderWidth: 1,
-		borderColor: 'rgba(255,255,255,0.05)',
+		borderColor: colors.neutral500,
 	},
 
 	// ----Input----
@@ -583,15 +643,16 @@ export const globalStyles = StyleSheet.create({
 		alignSelf: 'stretch',
 		overflow: 'hidden',
 		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.03)',
-		borderRadius: 17,
+		borderColor: colors.neutral500,
+		borderRadius: 12,
+		height: 54,
 	},
 	inputContainer: {
 		flexDirection: 'row',
 		height: 54,
 		alignItems: 'center',
 		gap: 10,
-		borderRadius: 17,
+		borderRadius: 12,
 	},
 	inputContent: {
 		flex: 1,
@@ -612,21 +673,20 @@ export const globalStyles = StyleSheet.create({
 	button: {
 		height: 52,
 		width: '100%',
-		paddingHorizontal: 16,
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderWidth: 0.8,
-		borderColor: 'rgba(255, 255, 255, 0.08)',
+		borderColor: colors.neutral500,
 		borderRadius: 17,
 	},
 	buttonBack: {
 		width: 45,
 		height: 45,
-		borderRadius: 12,
+		borderRadius: 17,
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderWidth: 0.8,
-		borderColor: 'rgba(255, 255, 255, 0.08)',
+		borderColor: colors.neutral500,
 		zIndex: 100,
 	},
 
@@ -649,7 +709,7 @@ export const globalStyles = StyleSheet.create({
 	},
 	tabActiveItem: {
 		borderWidth: 1,
-		borderColor: '#1B1B1B',
+		borderColor: colors.neutral500,
 	},
 	tabButton: {
 		height: 50,
@@ -659,7 +719,6 @@ export const globalStyles = StyleSheet.create({
 		alignItems: 'center',
 		borderWidth: 0.8,
 		borderRadius: 12,
-		borderColor: 'rgba(255, 255, 255, 0.08)',
 	},
 
 	// ----Manage Categories----
@@ -668,9 +727,9 @@ export const globalStyles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		paddingVertical: 14,
-		paddingHorizontal: 10,
+		paddingHorizontal: 6,
 		borderBottomWidth: 1,
-		borderBottomColor: '#3e3e3eff',
+		borderBottomColor: colors.neutral500,
 	},
 	rowNameContainer: {
 		flex: 1,
@@ -689,7 +748,7 @@ export const globalStyles = StyleSheet.create({
 		color: colors.white,
 		fontSize: 15,
 		borderBottomWidth: 1,
-		borderBottomColor: colors.primaryLight || '#fff',
+		borderBottomColor: colors.primaryLight || colors.neutral100,
 		paddingVertical: 2,
 	},
 
@@ -700,16 +759,16 @@ export const globalStyles = StyleSheet.create({
 		backgroundColor: 'rgba(0, 0, 0, 0.9)',
 		justifyContent: 'center',
 		alignItems: 'center',
-		padding: 20,
+		padding: 12,
 	},
 	confModalBox: {
 		width: '100%',
-		maxWidth: 320,
-		backgroundColor: '#161618',
-		borderRadius: 24,
-		padding: 24,
+		maxWidth: 360,
+		borderRadius: 17,
+		paddingVertical: 24,
+		paddingHorizontal: 16,
 		borderWidth: 1,
-		borderColor: '#242427',
+		borderColor: colors.neutral500,
 	},
 
 	// ----Privacy----
@@ -761,9 +820,10 @@ export const globalStyles = StyleSheet.create({
 	calendarOverlay: {
 		flex: 1,
 		backgroundColor: 'rgba(0, 0, 0, 0.9)',
-		justifyContent: 'center',
+		justifyContent: 'flex-end',
 		alignItems: 'center',
 		padding: 12,
+		paddingBottom: 60,
 	},
 	calendarHeader: {
 		flexDirection: 'row',

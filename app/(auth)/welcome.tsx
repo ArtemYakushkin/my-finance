@@ -14,11 +14,8 @@ const Welcome = () => {
 		<ScreenWrapper>
 			<View style={globalStyles.welcomeContainer}>
 				<View>
-					<TouchableOpacity
-						style={globalStyles.welcomeButton}
-						onPress={() => router.push('/(auth)/login')}
-					>
-						<Typo fontWeight={'500'} color={colors.primaryLight}>
+					<TouchableOpacity style={globalStyles.welcomeButton} onPress={() => router.push('/(auth)/login')}>
+						<Typo fontWeight={'700'} color={colors.primaryLight}>
 							Увійти
 						</Typo>
 					</TouchableOpacity>
@@ -32,21 +29,17 @@ const Welcome = () => {
 
 				<View style={globalStyles.welcomeFooter}>
 					<View style={{ alignItems: 'center' }}>
-						<Typo size={30} fontWeight={'800'}>
+						<Typo size={26} fontWeight={'800'}>
 							Фінанси
 						</Typo>
-						<Typo size={30} fontWeight={'800'}>
+						<Typo size={26} fontWeight={'800'}>
 							під контролем
 						</Typo>
 					</View>
 
 					<View style={globalStyles.welcomeBtnContainer}>
 						<Button onPress={() => router.push('/(auth)/register')}>
-							<Typo
-								size={26}
-								color={colors.primaryLight}
-								fontWeight={'700'}
-							>
+							<Typo size={21} color={colors.primaryLight} fontWeight={'700'}>
 								Почати
 							</Typo>
 						</Button>

@@ -1,8 +1,10 @@
+import BackButton from '@/components/BackButton';
 import Button from '@/components/Button';
 import ExpenseForm from '@/components/ExpenseForm';
 import Header from '@/components/Header';
 import IncomeForm from '@/components/IncomeForm';
-import ScreenWrapper from '@/components/ScreenWrapper';
+import Loading from '@/components/Loading';
+import ModalWrapper from '@/components/ModalWrapper';
 import TransferForm from '@/components/TransferForm';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
@@ -11,8 +13,9 @@ import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import * as Icons from 'phosphor-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 export type FormRefActions = {
 	submit: () => void;
@@ -23,6 +26,8 @@ type WalletType = {
 	name: string;
 	amount: number;
 	uid: string;
+	created?: any;
+	isExcludedFromTotal?: boolean;
 };
 
 type CategoryItem = {
@@ -30,6 +35,7 @@ type CategoryItem = {
 	value: string;
 	group: string;
 	type: 'expense' | 'income';
+	icon?: React.ComponentType<any>;
 };
 
 const transactionTypes = [
@@ -44,7 +50,7 @@ const transactionColors: Record<string, string> = {
 	transfer: colors.primaryLight,
 };
 
-const Transaction = () => {
+const TransactionModal = () => {
 	const { user } = useAuth();
 	const navigation = useNavigation();
 	const params = useLocalSearchParams<{ editData?: string }>();
@@ -102,7 +108,14 @@ const Transaction = () => {
 						name: data.name || 'Без назви',
 						amount: data.amount || 0,
 						uid: data.uid,
+						created: data.created,
 					});
+				});
+
+				walletsData.sort((a, b) => {
+					const timeA = a.created?.seconds || 0;
+					const timeB = b.created?.seconds || 0;
+					return timeA - timeB;
 				});
 				setWallets(walletsData);
 				setWalletsLoading(false);
@@ -123,11 +136,17 @@ const Transaction = () => {
 				const categoriesData: CategoryItem[] = [];
 				snapshot.forEach((doc) => {
 					const data = doc.data();
+					const iconName = data.icon as keyof typeof Icons;
+					const IconComponent =
+						iconName && Icons[iconName]
+							? (Icons[iconName] as React.ComponentType<any>)
+							: Icons.DotsThreeCircle;
 					categoriesData.push({
 						label: data.name || 'Без назви',
 						value: doc.id,
 						group: data.group || 'needs',
 						type: data.type || 'expense',
+						icon: IconComponent,
 					});
 				});
 				setCategories(categoriesData);
@@ -140,7 +159,7 @@ const Transaction = () => {
 		return () => unsubscribe();
 	}, [user?.uid]);
 
-	const dropdownWallets = useMemo(() => {
+	const listWallets = useMemo(() => {
 		return wallets.map((w) => ({
 			label: `${w.name} (${w.amount} ₴)`,
 			value: w.id,
@@ -155,7 +174,7 @@ const Transaction = () => {
 
 	const renderActiveForm = () => {
 		if (walletsLoading || categoriesLoading) {
-			return <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />;
+			return <Loading />;
 		}
 		switch (activeType) {
 			case 'expense':
@@ -163,28 +182,18 @@ const Transaction = () => {
 					<ExpenseForm
 						ref={formRef}
 						categories={categories}
-						wallets={dropdownWallets}
+						wallets={listWallets}
 						setLoading={setLoading}
 						oldData={parsedOldData}
 					/>
 				);
 			case 'income':
 				return (
-					<IncomeForm
-						ref={formRef}
-						wallets={dropdownWallets}
-						setLoading={setLoading}
-						oldData={parsedOldData}
-					/>
+					<IncomeForm ref={formRef} wallets={listWallets} setLoading={setLoading} oldData={parsedOldData} />
 				);
 			case 'transfer':
 				return (
-					<TransferForm
-						ref={formRef}
-						wallets={dropdownWallets}
-						setLoading={setLoading}
-						oldData={parsedOldData}
-					/>
+					<TransferForm ref={formRef} wallets={listWallets} setLoading={setLoading} oldData={parsedOldData} />
 				);
 			default:
 				return null;
@@ -192,68 +201,77 @@ const Transaction = () => {
 	};
 
 	return (
-		<ScreenWrapper>
+		<ModalWrapper>
 			<View style={[globalStyles.container, { flex: 1 }]}>
-				<Header title={isEditing ? 'Редагувати транзакцію' : 'Нова транзакція'} />
+				<Header title={isEditing ? 'Редагувати транзакцію' : 'Нова транзакція'} leftIcon={<BackButton />} />
 
 				<ScrollView
 					style={{ flex: 1 }}
-					contentContainerStyle={[globalStyles.modalForm, { paddingBottom: 100 }]}
+					contentContainerStyle={[globalStyles.modalForm, { paddingBottom: 140 }]}
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled"
 					automaticallyAdjustKeyboardInsets={true}
 				>
 					{!isEditing && (
-						<View style={{ gap: 10, marginBottom: 15 }}>
-							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
+						<View style={{ gap: 10 }}>
+							<Typo color={colors.neutral200} size={16}>
 								Тип
 							</Typo>
-							<View style={globalStyles.modalBtnWrap}>
-								{transactionTypes.map((item) => {
-									const isActive = activeType === item.value;
-									const activeTextColor = transactionColors[item.value] || colors.white;
-
-									return (
-										<Button
-											key={item.value}
-											onPress={() => setActiveType(item.value)}
-											style={{ flex: 1 }}
-										>
-											<Typo
-												size={16}
-												fontWeight={isActive ? '700' : '500'}
-												color={isActive ? activeTextColor : colors.neutral400}
+							<View style={{ width: '100%' }}>
+								<View style={globalStyles.statSegmentWrap}>
+									{transactionTypes.map((item) => {
+										const isActive = activeType === item.value;
+										const activeTextColor = transactionColors[item.value] || colors.white;
+										return (
+											<TouchableOpacity
+												key={item.value}
+												style={globalStyles.statSegmentBtn}
+												onPress={() => setActiveType(item.value)}
 											>
-												{item.label}
-											</Typo>
-										</Button>
-									);
-								})}
+												{isActive ? (
+													<View style={globalStyles.statSegmentActive}>
+														<Typo size={16} fontWeight={'500'} color={activeTextColor}>
+															{item.label}
+														</Typo>
+													</View>
+												) : (
+													<Typo
+														size={16}
+														color={colors.neutral400}
+														style={{ textAlign: 'center' }}
+													>
+														{item.label}
+													</Typo>
+												)}
+											</TouchableOpacity>
+										);
+									})}
+								</View>
 							</View>
 						</View>
 					)}
 
-					<View style={{ marginBottom: 10 }}>{renderActiveForm()}</View>
-
-					<View
-						style={{
-							paddingHorizontal: 5,
-						}}
-					>
-						<Button onPress={handleMainSubmit} disabled={loading || walletsLoading || categoriesLoading}>
-							{loading ? (
-								<ActivityIndicator color={colors.primaryLight} />
-							) : (
-								<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
-									{isEditing ? 'Зберегти' : 'Створити'}
-								</Typo>
-							)}
-						</Button>
-					</View>
+					<View>{renderActiveForm()}</View>
 				</ScrollView>
 			</View>
-		</ScreenWrapper>
+
+			<View style={globalStyles.modalFooter}>
+				<Button
+					style={{ width: '100%' }}
+					onPress={handleMainSubmit}
+					disabled={loading || walletsLoading || categoriesLoading}
+				>
+					{loading ? (
+						<Loading />
+					) : (
+						<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
+							{isEditing ? 'Зберегти' : 'Створити'}
+						</Typo>
+					)}
+				</Button>
+			</View>
+		</ModalWrapper>
 	);
 };
 
-export default Transaction;
+export default TransactionModal;

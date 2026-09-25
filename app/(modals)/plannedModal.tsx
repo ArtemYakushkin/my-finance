@@ -4,15 +4,14 @@ import CalculatorModal from '@/components/CalculatorModal';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import CustomDatePickerModal from '@/components/CustomDatePickerModal';
 import Header from '@/components/Header';
+import Loading from '@/components/Loading';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { auth, db } from '@/config/firebase';
 import { globalStyles } from '@/constants/global';
-import { BUTTON_GRADIENT, INPUT_GRADIENT } from '@/constants/gradient';
-import { SHADOW_BLOCK, SHADOW_DROPDOWN, SHADOW_INPUT } from '@/constants/shadow';
 import { colors } from '@/constants/theme';
 import { PlannedTransaction } from '@/constants/types';
-import { LinearGradient } from 'expo-linear-gradient';
+import { showErrorToast, showSuccessToast, showWarningToast } from '@/utils/showToast';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
 	addDoc,
@@ -27,15 +26,17 @@ import {
 	writeBatch,
 } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
-import { showMessage } from 'react-native-flash-message';
-import { Shadow } from 'react-native-shadow-2';
+import { useEffect, useMemo, useState } from 'react';
+import { LayoutAnimation, Platform, Pressable, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
 
-interface DropdownOption {
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+	UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+interface CategoryOption {
 	label: string;
 	value: string;
+	icon?: React.ComponentType<any>;
 }
 
 const transactionTypes = [
@@ -68,13 +69,13 @@ const PlannedModal = () => {
 	const [date, setDate] = useState(new Date());
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [amount, setAmount] = useState<number>(0);
-
-	const [categoriesOptions, setCategoriesOptions] = useState<DropdownOption[]>([]);
+	const [categoriesOptions, setCategoriesOptions] = useState<CategoryOption[]>([]);
 	const [loadingCategories, setLoadingCategories] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
 	const [showCalcModal, setShowCalcModal] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [deleting, setDeleting] = useState(false);
+	const [isExpanded, setIsExpanded] = useState(false);
 
 	useEffect(() => {
 		fetchCategories();
@@ -111,7 +112,7 @@ const PlannedModal = () => {
 	const fetchCategories = async () => {
 		const user = auth.currentUser;
 		if (!user) {
-			console.warn('User is not authenticated yet');
+			showWarningToast('Користувач ще не автентифікований');
 			return;
 		}
 
@@ -124,74 +125,59 @@ const PlannedModal = () => {
 				const defaultSnap = await getDocs(collection(db, 'categories'));
 				docs = defaultSnap.docs;
 			}
-			const options: DropdownOption[] = docs
+			const options: CategoryOption[] = docs
 				.map((docSnap) => {
 					const data = docSnap.data();
 					const categoryName = data.name || data.label || '';
+					const iconName = data.icon || 'Tag';
+					const IconComponent = (Icons as Record<string, any>)[iconName] || Icons.Tag;
 					return {
 						label: categoryName,
 						value: categoryName,
+						icon: IconComponent,
 					};
 				})
 				.filter((opt) => opt.label !== '');
 			setCategoriesOptions(options);
 		} catch (error) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Помилка завантаження категорій',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Помилка завантаження категорій');
 		} finally {
 			setLoadingCategories(false);
 		}
 	};
 
+	const handleTypeChange = (newType: 'expense' | 'income') => {
+		setType(newType);
+		if (newType === 'income') {
+			setCategory('');
+		}
+	};
+
+	const formatDate = (targetDate: Date) => {
+		const y = targetDate.getFullYear();
+		const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+		const d = String(targetDate.getDate()).padStart(2, '0');
+		return `${y}-${m}-${d}`;
+	};
+
 	const handleSave = async () => {
 		const user = auth.currentUser;
 		if (!user) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Користувач не авторизований',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Користувач не авторизований');
 			return;
 		}
 
 		if (type === 'expense' && !category) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Оберіть категорію',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showWarningToast('Оберіть категорію');
 			return;
 		}
 
 		if (!amount || isNaN(amount) || amount <= 0) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Введіть коректну суму',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showWarningToast('Введіть коректну суму');
 			return;
 		}
 
 		const autoTitle = type === 'expense' ? category : 'Дохід';
-
-		// Вспомогательная функция для форматирования даты в YYYY-MM-DD
-		const formatDate = (targetDate: Date) => {
-			const y = targetDate.getFullYear();
-			const m = String(targetDate.getMonth() + 1).padStart(2, '0');
-			const d = String(targetDate.getDate()).padStart(2, '0');
-			return `${y}-${m}-${d}`;
-		};
 
 		try {
 			setSubmitting(true);
@@ -216,20 +202,13 @@ const PlannedModal = () => {
 					updatedAt: serverTimestamp(),
 				});
 
-				showMessage({
-					message: 'Успіх',
-					description: 'Платіж оновлено',
-					type: 'success',
-					backgroundColor: colors.gradientMid,
-					color: colors.primary,
-				});
+				showSuccessToast('Платіж оновлено');
 			} else {
 				// Создание новых записей
 				if (isRecurring && frequency === 'monthly') {
 					// Пакетная запись для 12 месяцев
 					const batch = writeBatch(db);
 					const collectionRef = collection(db, 'planned_transactions');
-
 					const baseDay = date.getDate();
 
 					for (let i = 0; i < 12; i++) {
@@ -277,27 +256,14 @@ const PlannedModal = () => {
 					});
 				}
 
-				showMessage({
-					message: 'Успіх',
-					description: isRecurring
-						? 'Заплановані платежі створено на 12 місяців'
-						: 'Запланований платіж збережено',
-					type: 'success',
-					backgroundColor: colors.gradientMid,
-					color: colors.primary,
-				});
+				showSuccessToast(
+					isRecurring ? 'Заплановані платежі створено на 12 місяців' : 'Запланований платіж збережено',
+				);
 			}
 
 			router.back();
 		} catch (error) {
-			console.error('Помилка збереження запланованого платежу:', error);
-			showMessage({
-				message: 'Помилка',
-				description: 'Транзакція не збереглась',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Транзакція не збереглась');
 		} finally {
 			setSubmitting(false);
 		}
@@ -305,296 +271,292 @@ const PlannedModal = () => {
 
 	const handleDelete = async () => {
 		if (!params.id) return;
-
 		setShowConfirmModal(false);
-
 		try {
 			setDeleting(true);
 			await deleteDoc(doc(db, 'planned_transactions', params.id as string));
-			showMessage({
-				message: 'Успіх',
-				description: 'Платіж видалено',
-				type: 'success',
-				backgroundColor: colors.gradientMid,
-				color: colors.primary,
-			});
+			showSuccessToast('Платіж видалено');
 			router.back();
 		} catch (error) {
-			console.error('Помилка видалення:', error);
-			showMessage({
-				message: 'Помилка',
-				description: 'Не вдалося видалити платіж',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Не вдалося видалити платіж');
 		} finally {
 			setDeleting(false);
 		}
 	};
 
+	const sortedCategoriesOptions = useMemo(() => {
+		if (!category) return categoriesOptions;
+
+		const selectedItem = categoriesOptions.find((item) => item.value === category);
+		if (!selectedItem) return categoriesOptions;
+
+		const filtered = categoriesOptions.filter((item) => item.value !== category);
+		return [selectedItem, ...filtered];
+	}, [categoriesOptions, category]);
+
+	const visibleCategoriesOptions = isExpanded ? sortedCategoriesOptions : sortedCategoriesOptions.slice(0, 8);
+
+	const handleSelectCategory = (value: string) => {
+		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+		setCategory(value);
+		setIsExpanded(false);
+	};
+
+	const toggleExpand = () => {
+		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+		setIsExpanded(!isExpanded);
+	};
+
 	return (
 		<ModalWrapper>
-			<View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+			<View style={[globalStyles.container, { flex: 1 }]}>
 				<Header title={isEditMode ? 'Редагувати платіж' : 'Майбутній платіж'} leftIcon={<BackButton />} />
 
 				<ScrollView
 					style={{ flex: 1 }}
-					contentContainerStyle={[globalStyles.modalForm, { paddingBottom: 40 }]}
+					contentContainerStyle={[globalStyles.modalForm, { paddingBottom: 140 }]}
+					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled"
+					automaticallyAdjustKeyboardInsets={true}
 				>
 					<View style={{ gap: 10 }}>
-						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
+						<Typo color={colors.neutral200} size={16}>
 							Тип
 						</Typo>
-						<View style={globalStyles.modalBtnWrap}>
-							{transactionTypes.map((item) => {
-								const isActive = type === item.value;
-								const activeTextColor = transactionColors[item.value] || colors.white;
-								return (
-									<Button key={item.value} onPress={() => setType(item.value)} style={{ flex: 1 }}>
-										<Typo
-											size={16}
-											fontWeight={isActive ? '700' : '500'}
-											color={isActive ? activeTextColor : colors.neutral400}
+						<View style={{ width: '100%' }}>
+							<View style={globalStyles.statSegmentWrap}>
+								{transactionTypes.map((item) => {
+									const isActive = type === item.value;
+									const activeTextColor = transactionColors[item.value] || colors.white;
+									return (
+										<TouchableOpacity
+											key={item.value}
+											style={globalStyles.statSegmentBtn}
+											onPress={() => handleTypeChange(item.value as 'expense' | 'income')}
 										>
-											{item.label}
-										</Typo>
-									</Button>
-								);
-							})}
+											{isActive ? (
+												<View style={globalStyles.statSegmentActive}>
+													<Typo size={16} fontWeight={'500'} color={activeTextColor}>
+														{item.label}
+													</Typo>
+												</View>
+											) : (
+												<Typo
+													size={16}
+													color={colors.neutral400}
+													style={{ textAlign: 'center' }}
+												>
+													{item.label}
+												</Typo>
+											)}
+										</TouchableOpacity>
+									);
+								})}
+							</View>
 						</View>
 					</View>
 
 					{type === 'expense' && (
 						<View style={{ gap: 10 }}>
-							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
-								Категорія
+							<Typo color={colors.neutral200} size={16}>
+								Категорія витрат
 							</Typo>
-							<View style={globalStyles.modalDropdownShadowHolder}>
-								<Shadow {...SHADOW_DROPDOWN.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
-									<Shadow {...SHADOW_DROPDOWN.dark} style={{ alignSelf: 'stretch' }}>
-										<LinearGradient
-											{...(BUTTON_GRADIENT as any)}
-											style={{
-												borderRadius: 17,
-												overflow: 'hidden',
-												height: 56,
-												justifyContent: 'center',
-											}}
-										>
-											<Dropdown
-												style={[
-													globalStyles.modalDropdownContainer,
-													{ backgroundColor: 'transparent', borderWidth: 0 },
-												]}
-												activeColor={colors.gradientStart}
-												placeholderStyle={{ color: colors.white }}
-												selectedTextStyle={{
-													color: colors.white,
-													fontSize: 14,
-												}}
-												iconStyle={{ height: 30, tintColor: colors.neutral300 }}
-												maxHeight={300}
-												itemTextStyle={{ color: colors.white }}
-												itemContainerStyle={{
-													borderRadius: 15,
-													marginHorizontal: 7,
-												}}
-												containerStyle={{
-													backgroundColor: colors.gradientEnd,
-													borderRadius: 15,
-													borderCurve: 'continuous',
-													paddingVertical: 7,
-													top: 5,
-													borderColor: colors.gradientStart,
-													shadowColor: colors.black,
-													shadowOffset: { width: 0, height: 5 },
-													shadowOpacity: 1,
-													shadowRadius: 15,
-													elevation: 5,
-												}}
-												data={categoriesOptions}
-												labelField="label"
-												valueField="value"
-												placeholder={'Оберіть категорію'}
-												value={category}
-												onChange={(item) => setCategory(item.value)}
-											/>
-										</LinearGradient>
-									</Shadow>
-								</Shadow>
-							</View>
-						</View>
-					)}
-
-					<View style={{ gap: 10, paddingHorizontal: 5 }}>
-						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
-							Сума
-						</Typo>
-						<View style={globalStyles.modalInputContainer}>
-							<Shadow {...SHADOW_INPUT.light} style={{ alignSelf: 'stretch' }}>
-								<Shadow {...SHADOW_INPUT.dark} style={{ alignSelf: 'stretch' }}>
-									<LinearGradient {...INPUT_GRADIENT} style={globalStyles.modalInputInner}>
-										<Pressable
-											style={globalStyles.modalInput}
-											onPress={() => setShowCalcModal(true)}
-										>
-											<Typo size={14}>{amount === 0 ? 'Ввести суму' : `${amount}`}</Typo>
-										</Pressable>
-									</LinearGradient>
-								</Shadow>
-							</Shadow>
-						</View>
-					</View>
-
-					<View style={{ gap: 12 }}>
-						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
-							Регулярність
-						</Typo>
-
-						<View style={{ paddingHorizontal: 10 }}>
-							<Shadow {...SHADOW_BLOCK.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
-								<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
-									<View style={globalStyles.statSegmentWrap}>
-										{['Разовий', 'Регулярний'].map((label, index) => {
-											const isActive = index === 1 ? isRecurring : !isRecurring;
+							{loadingCategories ? (
+								<Loading />
+							) : (
+								<View style={{ gap: 10 }}>
+									<View style={globalStyles.transCatContainer}>
+										{visibleCategoriesOptions.map((item) => {
+											const isSelected = category === item.value;
+											const IconComponent = item.icon;
 											return (
 												<TouchableOpacity
-													key={label}
-													style={globalStyles.statSegmentBtn}
-													onPress={() => setIsRecurring(index === 1)}
+													key={item.value}
+													onPress={() => handleSelectCategory(item.value)}
+													style={globalStyles.transCatItem}
 												>
-													{isActive ? (
-														<View style={globalStyles.statSegmentActive}>
-															<Text
-																style={{
-																	color: colors.white,
-																	fontWeight: '700',
-																	fontSize: 13,
-																}}
-															>
-																{label}
-															</Text>
-														</View>
-													) : (
-														<Text
-															style={{
-																color: colors.neutral400,
-																textAlign: 'center',
-																fontSize: 13,
-															}}
-														>
-															{label}
-														</Text>
-													)}
+													<View
+														style={[
+															globalStyles.transCatIcon,
+															isSelected && { borderColor: colors.primaryLight },
+														]}
+													>
+														{IconComponent ? (
+															<IconComponent
+																size={24}
+																color={
+																	isSelected ? colors.primaryLight : colors.neutral400
+																}
+															/>
+														) : null}
+													</View>
+													<Typo
+														size={13}
+														fontWeight={500}
+														color={isSelected ? colors.primaryLight : colors.neutral400}
+														style={{ textAlign: 'center' }}
+													>
+														{item.label}
+													</Typo>
 												</TouchableOpacity>
 											);
 										})}
 									</View>
-								</Shadow>
-							</Shadow>
+
+									{sortedCategoriesOptions.length > 8 && (
+										<TouchableOpacity
+											onPress={toggleExpand}
+											style={globalStyles.transCatExpandButton}
+										>
+											<Typo color={colors.primaryLight} size={14} fontWeight={600}>
+												{isExpanded ? 'Згорнути' : `Ще (${sortedCategoriesOptions.length - 8})`}
+											</Typo>
+											{isExpanded ? (
+												<Icons.CaretUp color={colors.primaryLight} size={18} />
+											) : (
+												<Icons.CaretDown color={colors.primaryLight} size={18} />
+											)}
+										</TouchableOpacity>
+									)}
+								</View>
+							)}
+						</View>
+					)}
+
+					<View style={{ gap: 10 }}>
+						<Typo color={colors.neutral200} size={16}>
+							Регулярність
+						</Typo>
+
+						<View style={{ width: '100%' }}>
+							<View style={globalStyles.statSegmentWrap}>
+								{['Разовий', 'Регулярний'].map((label, index) => {
+									const isActive = index === 1 ? isRecurring : !isRecurring;
+									return (
+										<TouchableOpacity
+											key={label}
+											style={globalStyles.statSegmentBtn}
+											onPress={() => setIsRecurring(index === 1)}
+										>
+											{isActive ? (
+												<View style={globalStyles.statSegmentActive}>
+													<Typo size={16} fontWeight={'500'} color={colors.neutral200}>
+														{label}
+													</Typo>
+												</View>
+											) : (
+												<Typo
+													size={16}
+													color={colors.neutral400}
+													style={{ textAlign: 'center' }}
+												>
+													{label}
+												</Typo>
+											)}
+										</TouchableOpacity>
+									);
+								})}
+							</View>
 						</View>
 
 						{isRecurring && (
-							<View style={{ paddingHorizontal: 10 }}>
-								<Shadow {...SHADOW_BLOCK.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
-									<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
-										<View style={globalStyles.statSegmentWrap}>
-											{[
-												{ label: 'Щомісячно', value: 'monthly' },
-												{ label: 'Щорічно', value: 'yearly' },
-											].map((item) => {
-												const isActive = frequency === item.value;
-												return (
-													<TouchableOpacity
-														key={item.value}
-														style={globalStyles.statSegmentBtn}
-														onPress={() => setFrequency(item.value as 'monthly' | 'yearly')}
-														activeOpacity={0.7}
+							<View style={{ width: '100%' }}>
+								<View style={globalStyles.statSegmentWrap}>
+									{[
+										{ label: 'Щомісячно', value: 'monthly' },
+										{ label: 'Щорічно', value: 'yearly' },
+									].map((item) => {
+										const isActive = frequency === item.value;
+										return (
+											<TouchableOpacity
+												key={item.value}
+												style={globalStyles.statSegmentBtn}
+												onPress={() => setFrequency(item.value as 'monthly' | 'yearly')}
+											>
+												{isActive ? (
+													<View style={globalStyles.statSegmentActive}>
+														<Typo size={16} fontWeight={'500'} color={colors.neutral200}>
+															{item.label}
+														</Typo>
+													</View>
+												) : (
+													<Typo
+														size={13}
+														color={colors.neutral400}
+														style={{ textAlign: 'center' }}
 													>
-														{isActive ? (
-															<View style={globalStyles.statSegmentActive}>
-																<Typo size={13} fontWeight="700" color={colors.white}>
-																	{item.label}
-																</Typo>
-															</View>
-														) : (
-															<Typo
-																size={13}
-																color={colors.neutral400}
-																style={{ textAlign: 'center' }}
-															>
-																{item.label}
-															</Typo>
-														)}
-													</TouchableOpacity>
-												);
-											})}
-										</View>
-									</Shadow>
-								</Shadow>
+														{item.label}
+													</Typo>
+												)}
+											</TouchableOpacity>
+										);
+									})}
+								</View>
 							</View>
 						)}
 					</View>
 
-					<View style={{ gap: 10, paddingHorizontal: 5 }}>
-						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
-							Дата
-						</Typo>
-						<View style={globalStyles.modalInputContainer}>
-							<Shadow {...SHADOW_INPUT.light} style={{ alignSelf: 'stretch' }}>
-								<Shadow {...SHADOW_INPUT.dark} style={{ alignSelf: 'stretch' }}>
-									<LinearGradient {...INPUT_GRADIENT} style={globalStyles.modalInputInner}>
-										<Pressable
-											style={globalStyles.modalInput}
-											onPress={() => setShowDatePicker(true)}
-										>
-											<Typo size={14}>{date.toLocaleDateString('uk-UA')}</Typo>
-										</Pressable>
-									</LinearGradient>
-								</Shadow>
-							</Shadow>
+					<View style={{ flexDirection: 'row', gap: 10 }}>
+						<View style={{ gap: 10, flex: 1 }}>
+							<Typo color={colors.neutral200} size={16}>
+								Дата
+							</Typo>
+							<View style={globalStyles.modalInputContainer}>
+								<View style={globalStyles.modalInputInner}>
+									<Pressable style={globalStyles.modalInput} onPress={() => setShowDatePicker(true)}>
+										<Typo size={14}>{date.toLocaleDateString('uk-UA')}</Typo>
+									</Pressable>
+								</View>
+							</View>
+						</View>
+
+						<View style={{ gap: 10, flex: 1 }}>
+							<Typo color={colors.neutral200} size={16}>
+								Сума
+							</Typo>
+							<View style={globalStyles.modalInputContainer}>
+								<View style={globalStyles.modalInputInner}>
+									<Pressable style={globalStyles.modalInput} onPress={() => setShowCalcModal(true)}>
+										<Typo size={14}>{amount === 0 ? 'Ввести суму' : `${amount}`}</Typo>
+									</Pressable>
+								</View>
+							</View>
 						</View>
 					</View>
 				</ScrollView>
+			</View>
 
-				<View style={globalStyles.modalFooter}>
-					{isEditMode ? (
-						<View style={{ flexDirection: 'row', flex: 1 }}>
-							<Button
-								style={{ marginRight: 5 }}
-								onPress={() => setShowConfirmModal(true)}
-								disabled={deleting || submitting}
-							>
-								{deleting ? (
-									<ActivityIndicator color={colors.rose} />
-								) : (
-									<Icons.Trash color={colors.rose} size={24} weight="bold" />
-								)}
-							</Button>
-							<Button style={{ flex: 1 }} onPress={handleSave} disabled={submitting || deleting}>
-								{submitting ? (
-									<ActivityIndicator color={colors.primaryLight} />
-								) : (
-									<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
-										Редагувати
-									</Typo>
-								)}
-							</Button>
-						</View>
-					) : (
-						<Button style={{ flex: 1 }} onPress={handleSave} disabled={submitting}>
+			<View style={globalStyles.modalFooter}>
+				{isEditMode ? (
+					<View style={{ flexDirection: 'row', flex: 1 }}>
+						<Button
+							style={{ marginRight: 5, flex: 0.2 }}
+							onPress={() => setShowConfirmModal(true)}
+							disabled={deleting || submitting}
+						>
+							{deleting ? <Loading /> : <Icons.Trash color={colors.rose} size={24} weight="bold" />}
+						</Button>
+						<Button style={{ flex: 1 }} onPress={handleSave} disabled={submitting || deleting}>
 							{submitting ? (
-								<ActivityIndicator color={colors.primaryLight} />
+								<Loading />
 							) : (
 								<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
-									Створити
+									Редагувати
 								</Typo>
 							)}
 						</Button>
-					)}
-				</View>
+					</View>
+				) : (
+					<Button style={{ flex: 1 }} onPress={handleSave} disabled={submitting}>
+						{submitting ? (
+							<Loading />
+						) : (
+							<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
+								Створити
+							</Typo>
+						)}
+					</Button>
+				)}
 			</View>
 
 			<CalculatorModal

@@ -20,20 +20,16 @@ type WalletType = {
 	image: any;
 	uid?: string;
 	created?: Date;
+	isExcludedFromTotal?: boolean; // Флаг эксклюзивного кошелька
+	isExclusive?: boolean;
+	isExcluded?: boolean;
 };
 
-const WalletItem = ({
-	item,
-	index,
-	router,
-}: {
-	item: WalletType;
-	index: number;
-	router: Router;
-}) => {
+const WalletItem = ({ item, index, router }: { item: WalletType; index: number; router: Router }) => {
 	const { user } = useAuth();
-
 	const currencySymbol = getCurrencySymbol(user?.currency);
+
+	const isExclusive = item?.isExcludedFromTotal || item?.isExclusive || item?.isExcluded;
 
 	const openWallet = () => {
 		router.push({
@@ -52,11 +48,7 @@ const WalletItem = ({
 	return (
 		<Animated.View entering={FadeInDown.delay(index * 200).springify()}>
 			<Pressable onPress={openWallet}>
-				<BlurView
-					intensity={25}
-					tint="dark"
-					style={globalStyles.walletItem}
-				>
+				<BlurView intensity={25} tint="dark" style={globalStyles.walletItem}>
 					<View style={globalStyles.walletImage}>
 						<Image
 							style={{ flex: 1 }}
@@ -72,11 +64,10 @@ const WalletItem = ({
 							{item?.amount}
 						</Typo>
 					</View>
-					<Icons.CaretRight
-						size={20}
-						weight="bold"
-						color={colors.white}
-					/>
+					{isExclusive && (
+						<Icons.Lock size={20} weight="bold" color={colors.neutral500} style={{ marginRight: 20 }} />
+					)}
+					<Icons.CaretRight size={20} weight="bold" color={colors.neutral100} />
 				</BlurView>
 			</Pressable>
 		</Animated.View>

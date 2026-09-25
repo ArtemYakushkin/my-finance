@@ -5,20 +5,16 @@ import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
 import { globalStyles } from '@/constants/global';
-import { INPUT_GRADIENT } from '@/constants/gradient';
-import { SHADOW_INPUT_AUTH } from '@/constants/shadow';
 import { colors } from '@/constants/theme';
 import { categoryGroups } from '@/constants/types';
 import { useAuth } from '@/context/useAuth';
 import useFetchData from '@/hooks/useFetchData';
 import { deleteCategoryAndRefundBalance } from '@/services/categoriesService';
-import { LinearGradient } from 'expo-linear-gradient';
+import { showErrorToast, showSuccessToast } from '@/utils/showToast';
 import { doc, updateDoc, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { Keyboard, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
-import { showMessage } from 'react-native-flash-message';
-import { Shadow } from 'react-native-shadow-2';
 
 interface CategoryItem {
 	id: string;
@@ -79,30 +75,12 @@ const ManageCategoriesModal = () => {
 		try {
 			const res = await deleteCategoryAndRefundBalance(user.uid, categoryToDelete);
 			if (res.success) {
-				showMessage({
-					message: 'Успішно',
-					description: `Категорію "${categoryToDelete}" видалено`,
-					type: 'success',
-					backgroundColor: colors.gradientMid,
-					color: colors.primaryLight,
-				});
+				showSuccessToast(`Категорію "${categoryToDelete}" видалено`);
 			} else {
-				showMessage({
-					message: 'Помилка',
-					description: res.msg || 'Не вдалося видалити категорію',
-					type: 'danger',
-					backgroundColor: colors.gradientMid,
-					color: colors.rose,
-				});
+				showErrorToast(res.msg || 'Не вдалося видалити категорію');
 			}
 		} catch (error) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Щось пішло не так при видаленні',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Щось пішло не так при видаленні');
 		} finally {
 			setCategoryToDelete(null);
 		}
@@ -115,13 +93,7 @@ const ManageCategoriesModal = () => {
 			await updateDoc(catRef, { name: editName.trim() });
 			setEditingId(null);
 		} catch (error) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Не вдалося оновити назву',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Не вдалося оновити назву');
 		}
 	};
 
@@ -150,7 +122,7 @@ const ManageCategoriesModal = () => {
 				<View style={globalStyles.rowActions}>
 					{isEditing ? (
 						<TouchableOpacity onPress={() => handleSaveEdit(item.id)} style={globalStyles.rowActionBtn}>
-							<Icons.Check color={colors.primaryLight || '#fff'} size={22} weight="bold" />
+							<Icons.Check color={colors.primaryLight || colors.neutral300} size={22} weight="bold" />
 						</TouchableOpacity>
 					) : (
 						<TouchableOpacity
@@ -165,7 +137,7 @@ const ManageCategoriesModal = () => {
 					)}
 
 					<TouchableOpacity onPress={() => handleDeletePress(item.name)} style={globalStyles.rowActionBtn}>
-						<Icons.Trash color={colors.rose || '#e11d48'} size={20} />
+						<Icons.Trash color={colors.rose || colors.rose} size={20} />
 					</TouchableOpacity>
 				</View>
 			</View>
@@ -192,18 +164,20 @@ const ManageCategoriesModal = () => {
 
 						return (
 							<View key={group.value} style={{ marginBottom: 20 }}>
-								<View style={[globalStyles.inputBaseBackground, { marginBottom: 20 }]}>
-									<Shadow {...SHADOW_INPUT_AUTH.light} style={{ alignSelf: 'stretch' }}>
-										<Shadow {...SHADOW_INPUT_AUTH.dark} style={{ alignSelf: 'stretch' }}>
-											<LinearGradient {...INPUT_GRADIENT} style={globalStyles.inputContainer}>
-												<View style={globalStyles.inputContent}>
-													<Typo color={group.color} size={17} fontWeight="700">
-														{group.label}
-													</Typo>
-												</View>
-											</LinearGradient>
-										</Shadow>
-									</Shadow>
+								<View style={{ marginBottom: 20 }}>
+									<View
+										style={{
+											backgroundColor: colors.gradientMid,
+											justifyContent: 'center',
+											alignItems: 'center',
+											paddingVertical: 12,
+											borderRadius: 12,
+										}}
+									>
+										<Typo color={group.color} size={24} fontWeight="700">
+											{group.label}
+										</Typo>
+									</View>
 								</View>
 
 								{groupSubCategories.length > 0 ? (

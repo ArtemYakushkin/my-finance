@@ -61,8 +61,6 @@ const HomeCard = () => {
 						<Typo size={17} fontWeight={500} color={colors.neutral300}>
 							Загальний баланс
 						</Typo>
-
-						<Icons.DotsThreeOutline size={23} color={colors.white} weight="fill" />
 					</View>
 					<View style={{ minHeight: 40, justifyContent: 'center' }}>
 						<Typo size={30} fontWeight={'bold'} color={colors.white}>

@@ -1,3 +1,4 @@
+import Button from '@/components/Button';
 import HomeCard from '@/components/HomeCard';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import TransactionList from '@/components/TransactionList';
@@ -6,14 +7,26 @@ import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
 import useFetchData from '@/hooks/useFetchData';
+import { CurrencyItem, fetchPopularRates, getFlagUrl } from '@/services/nbuApi';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
-import { Pressable, ScrollView, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
 
 const Home = () => {
 	const { user } = useAuth();
 	const router = useRouter();
+
+	const [usdData, setUsdData] = useState<CurrencyItem | null>(null);
+
+	useEffect(() => {
+		fetchPopularRates().then((rates) => {
+			const usd = rates.find((r) => r.cc === 'USD');
+			if (usd) setUsdData(usd);
+		});
+	}, []);
 
 	// 1. Получаем транзакции пользователя
 	const { data: recentTransactions, loading: transactionsLoading } = useFetchData<any>(
@@ -38,19 +51,68 @@ const Home = () => {
 	return (
 		<ScreenWrapper>
 			<View style={[globalStyles.container, { marginTop: 8 }]}>
-				<View style={globalStyles.header}>
-					<View style={{ gap: 4 }}>
-						<Typo size={16} color={colors.neutral400}>
-							Привіт,
-						</Typo>
-						<Typo size={20} fontWeight={500}>
-							{user?.name}
-						</Typo>
-					</View>
+				{/* Кнопка вызова модалки создания транзакции */}
+				<Button
+					style={{
+						zIndex: 100,
+						height: 50,
+						width: 50,
+						alignItems: 'center',
+						justifyContent: 'center',
+						position: 'absolute',
+						bottom: 32,
+						right: 12,
+					}}
+					onPress={() => router.push('/(modals)/transactionModal')}
+				>
+					<Icons.Plus size={32} weight="bold" color={colors.primaryLight} />
+				</Button>
 
-					<Pressable onPress={() => router.push('/(modals)/searchModal')} style={globalStyles.searchIcon}>
-						<Icons.MagnifyingGlass size={27} color={colors.neutral200} weight="bold" />
-					</Pressable>
+				<View style={globalStyles.header}>
+					<TouchableOpacity
+						onPress={() => router.push('/(modals)/profileModal')}
+						style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+					>
+						<Image
+							style={globalStyles.avatar}
+							resizeMode="contain"
+							source={user?.image || require('../../assets/images/avatar.png')}
+						/>
+					</TouchableOpacity>
+
+					{usdData && (
+						<TouchableOpacity
+							onPress={() => router.push('/(modals)/exchangeRateModal')}
+							style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
+						>
+							<Image
+								source={{ uri: getFlagUrl(usdData?.countryCode) }}
+								style={{
+									width: 40,
+									height: 25,
+								}}
+								contentFit="cover"
+							/>
+							<View>
+								<Typo size={12} color={colors.neutral400}>
+									{usdData.txt}
+								</Typo>
+								<Typo size={14} fontWeight="500" color={colors.white}>
+									{usdData.buyRate.toFixed(2)} / {usdData.sellRate.toFixed(2)}
+								</Typo>
+							</View>
+						</TouchableOpacity>
+					)}
+
+					<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+						<Pressable onPress={() => router.push('/(modals)/searchModal')} style={globalStyles.actionIcon}>
+							<Icons.Moon size={20} color={colors.neutral200} weight="bold" />
+						</Pressable>
+
+						<Pressable onPress={() => router.push('/(modals)/searchModal')} style={globalStyles.actionIcon}>
+							<Icons.MagnifyingGlass size={20} color={colors.neutral200} weight="bold" />
+						</Pressable>
+					</View>
 				</View>
 
 				<ScrollView contentContainerStyle={globalStyles.scrollViewStyle} showsVerticalScrollIndicator={false}>

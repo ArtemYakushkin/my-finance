@@ -1,13 +1,9 @@
 import { globalStyles } from '@/constants/global';
 import { BUTTON_GRADIENT } from '@/constants/gradient';
-import { SHADOW_BUTTON } from '@/constants/shadow';
 import { colors } from '@/constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TabNavigationState } from 'expo-router';
-import {
-	NavigationHelpers,
-	ParamListBase,
-} from 'expo-router/build/react-navigation';
+import { NavigationHelpers, ParamListBase } from 'expo-router/build/react-navigation';
 import {
 	BottomTabDescriptorMap,
 	BottomTabNavigationEventMap,
@@ -15,7 +11,6 @@ import {
 import * as Icons from 'phosphor-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { EdgeInsets } from 'react-native-safe-area-context';
-import { Shadow } from 'react-native-shadow-2';
 
 type BottomTabBarProps = {
 	state: TabNavigationState<ParamListBase>;
@@ -35,13 +30,6 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 		),
 		statistics: (isFocused: boolean) => (
 			<Icons.ChartBar
-				size={28}
-				weight={isFocused ? 'fill' : 'regular'}
-				color={isFocused ? colors.primaryLight : colors.neutral400}
-			/>
-		),
-		transaction: (isFocused: boolean) => (
-			<Icons.Plus
 				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
 				color={isFocused ? colors.primaryLight : colors.neutral400}
@@ -89,41 +77,16 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 						}}
 					>
 						{isFocused ? (
-							<Shadow
-								{...SHADOW_BUTTON.light}
-								style={{
-									borderRadius: 12,
-									alignSelf: 'stretch',
-								}}
-							>
-								<Shadow
-									{...SHADOW_BUTTON.dark}
-									style={{ alignSelf: 'stretch' }}
-								>
-									<TouchableOpacity
-										onPress={onPress}
-										style={[
-											globalStyles.tabItem,
-											globalStyles.tabActiveItem,
-											{ backgroundColor: '#171717' },
-										]}
-									>
-										<LinearGradient
-											{...BUTTON_GRADIENT}
-											style={globalStyles.tabButton}
-										>
-											{tabbarIcons[route.name]?.(
-												isFocused,
-											)}
-										</LinearGradient>
-									</TouchableOpacity>
-								</Shadow>
-							</Shadow>
-						) : (
 							<TouchableOpacity
 								onPress={onPress}
-								style={globalStyles.tabItem}
+								style={[globalStyles.tabItem, globalStyles.tabActiveItem]}
 							>
+								<LinearGradient {...BUTTON_GRADIENT} style={globalStyles.tabButton}>
+									{tabbarIcons[route.name]?.(isFocused)}
+								</LinearGradient>
+							</TouchableOpacity>
+						) : (
+							<TouchableOpacity onPress={onPress} style={globalStyles.tabItem}>
 								{tabbarIcons[route.name]?.(isFocused)}
 							</TouchableOpacity>
 						)}

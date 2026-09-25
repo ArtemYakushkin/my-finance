@@ -1,9 +1,8 @@
 import { auth, db } from '@/config/firebase';
-import { colors } from '@/constants/theme';
+import { showErrorToast } from '@/utils/showToast';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore'; // Добавили updateDoc
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { showMessage } from 'react-native-flash-message';
 
 export interface UserType {
 	uid: string;
@@ -85,13 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 			return { success: true };
 		} catch (error: any) {
-			showMessage({
-				message: 'Помилка оновлення',
-				description: error.message || 'Не вдалося оновити дані профілю',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast(error.message || 'Не вдалося оновити дані профілю');
 			return { success: false, msg: error.message };
 		}
 	};

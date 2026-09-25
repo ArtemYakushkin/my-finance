@@ -17,6 +17,7 @@ export interface WalletInput {
 	name: string;
 	image: string | null;
 	uid: string;
+	isExcludedFromTotal?: boolean;
 }
 
 // 1. Создание кошелька
@@ -29,6 +30,7 @@ export const createWallet = async (walletData: WalletInput) => {
 		totalIncome: 0,
 		totalExpenses: 0,
 		created: serverTimestamp(),
+		isExcludedFromTotal: walletData.isExcludedFromTotal || false,
 	});
 };
 
@@ -37,11 +39,13 @@ export const updateWallet = async (
 	walletId: string,
 	name: string,
 	image: string | null,
+	isExcludedFromTotal?: boolean,
 ) => {
 	const walletRef = doc(db, 'wallets', walletId);
 	await updateDoc(walletRef, {
 		name,
 		image: image || DEFAULT_WALLET_IMAGE,
+		isExcludedFromTotal: !!isExcludedFromTotal,
 	});
 };
 
@@ -52,9 +56,7 @@ export const deleteWalletWithTransfer = async (
 	targetWalletId: string | null, // id предыдущего кошелька, куда переносим
 ) => {
 	if (!targetWalletId) {
-		throw new Error(
-			'Не знайдено іншого гаманця для перенесення транзакцій.',
-		);
+		throw new Error('Не знайдено іншого гаманця для перенесення транзакцій.');
 	}
 
 	// Ищем все транзакции, привязанные к удаляемому кошельку
@@ -83,11 +85,8 @@ export const deleteWalletWithTransfer = async (
 		// 1. Пересчитываем балансы целевого кошелька, прибавляя данные удаляемого
 		transaction.update(targetWalletRef, {
 			amount: (targetData.amount || 0) + (deletedData.amount || 0),
-			totalIncome:
-				(targetData.totalIncome || 0) + (deletedData.totalIncome || 0),
-			totalExpenses:
-				(targetData.totalExpenses || 0) +
-				(deletedData.totalExpenses || 0),
+			totalIncome: (targetData.totalIncome || 0) + (deletedData.totalIncome || 0),
+			totalExpenses: (targetData.totalExpenses || 0) + (deletedData.totalExpenses || 0),
 		});
 
 		// 2. Меняем walletId во всех связанных транзакциях на новый кошелек

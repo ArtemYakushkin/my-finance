@@ -2,17 +2,18 @@ import BackButton from '@/components/BackButton';
 import Button from '@/components/Button';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import Input from '@/components/Input';
+import Loading from '@/components/Loading';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { auth } from '@/config/firebase';
 import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
+import { showErrorToast, showSuccessToast, showWarningToast } from '@/utils/showToast';
 import { useRouter } from 'expo-router';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import * as Icons from 'phosphor-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
-import { showMessage } from 'react-native-flash-message';
+import { Pressable, View } from 'react-native';
 
 const Login = () => {
 	const [email, setEmail] = useState('');
@@ -23,13 +24,7 @@ const Login = () => {
 
 	const handleLogin = async () => {
 		if (!email.trim() || !password.trim()) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Будь ласка, заповніть усі поля',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Будь ласка, заповніть усі поля');
 			return;
 		}
 
@@ -52,13 +47,7 @@ const Login = () => {
 					errorMessage = 'Цей обліковий запис було заблоковано';
 					break;
 			}
-			showMessage({
-				message: 'Помилка',
-				description: errorMessage,
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast(errorMessage);
 		} finally {
 			setIsLoading(false);
 		}
@@ -66,13 +55,7 @@ const Login = () => {
 
 	const handleForgotPassword = () => {
 		if (!email.trim()) {
-			showMessage({
-				message: 'Відновлення пароля',
-				description: 'Будь ласка, спочатку введіть свою ел. адресу.',
-				type: 'warning',
-				backgroundColor: colors.gradientMid,
-				color: colors.orange,
-			});
+			showWarningToast('Будь ласка, спочатку введіть свою ел.адресу.');
 			return;
 		}
 		setConfirmVisible(true);
@@ -82,25 +65,13 @@ const Login = () => {
 		setConfirmVisible(false);
 		try {
 			await sendPasswordResetEmail(auth, email.trim());
-			showMessage({
-				message: 'Успішно',
-				description: 'Лист для зміни пароля надіслано! Перевірте пошту (включаючи папку Спам).',
-				type: 'success',
-				backgroundColor: colors.gradientMid,
-				color: colors.primary,
-			});
+			showSuccessToast('Лист для зміни пароля надіслано! Перевірте пошту (включаючи папку Спам)');
 		} catch (error: any) {
 			let errorText = 'Не вдалося надіслати лист. Спробуйте пізніше.';
 			if (error.code === 'auth/invalid-email') {
 				errorText = 'Введено некоректну ел. адресу';
 			}
-			showMessage({
-				message: 'Помилка',
-				description: errorText,
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast(errorText);
 		}
 	};
 
@@ -109,7 +80,7 @@ const Login = () => {
 			<View style={globalStyles.authContainer}>
 				<BackButton iconSize={28} />
 
-				<View style={{ gap: 5, marginTop: 20 }}>
+				<View style={{ gap: 5, marginTop: 20, marginLeft: 5 }}>
 					<Typo size={30} fontWeight={'800'}>
 						Хей,
 					</Typo>
@@ -119,18 +90,14 @@ const Login = () => {
 				</View>
 
 				<View style={globalStyles.authForm}>
-					<Typo size={16} color={colors.textLighter}>
-						Увійдіть, щоб відстежувати свої витрати
-					</Typo>
-
 					<Input
-						placeholder="Введіть свою ел. адресу"
+						placeholder="Введіть свою ел.адресу"
 						keyboardType="email-address"
 						autoCapitalize="none"
 						textContentType="emailAddress"
 						value={email}
 						onChangeText={setEmail}
-						icon={<Icons.At size={26} color={colors.neutral300} weight="fill" />}
+						icon={<Icons.At size={26} color={colors.neutral400} weight="fill" />}
 					/>
 
 					<Input
@@ -138,18 +105,18 @@ const Login = () => {
 						secureTextEntry
 						value={password}
 						onChangeText={setPassword}
-						icon={<Icons.Lock size={26} color={colors.neutral300} weight="fill" />}
+						icon={<Icons.Lock size={26} color={colors.neutral400} weight="fill" />}
 					/>
 
 					<Pressable onPress={handleForgotPassword} style={{ alignSelf: 'flex-end' }}>
-						<Typo size={14} color={colors.text}>
+						<Typo size={14} color={colors.neutral50}>
 							Забули пароль?
 						</Typo>
 					</Pressable>
 
 					<Button loading={isLoading} onPress={handleLogin}>
 						{isLoading ? (
-							<ActivityIndicator color={colors.primaryLight} />
+							<Loading />
 						) : (
 							<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
 								Вхід
@@ -159,7 +126,9 @@ const Login = () => {
 				</View>
 
 				<View style={globalStyles.authFooter}>
-					<Typo size={15}>Немає облікового запису?</Typo>
+					<Typo size={15} color={colors.neutral400}>
+						Немає облікового запису?
+					</Typo>
 					<Pressable onPress={() => router.push('/(auth)/register')}>
 						<Typo size={15} fontWeight={'700'} color={colors.primaryLight}>
 							Зареєструватися

@@ -1,7 +1,7 @@
 import BackButton from '@/components/BackButton';
 import Header from '@/components/Header';
 import Loading from '@/components/Loading';
-import ScreenWrapper from '@/components/ScreenWrapper';
+import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
 import { globalStyles } from '@/constants/global';
@@ -10,7 +10,6 @@ import { PlannedTransaction } from '@/constants/types';
 import { useAuth } from '@/context/useAuth';
 import { cleanupExpiredTransactions } from '@/services/cleanPastTransactions';
 import { getCurrencySymbol } from '@/utils/common';
-import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
@@ -44,7 +43,7 @@ interface PlannerProps {
 	onDelete?: (id: string) => void;
 }
 
-const Planner: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
+const CalendarModal: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 	const todayStr = new Date().toISOString().split('T')[0].substring(0, 7);
 	const [selectedMonth, setSelectedMonth] = useState(todayStr);
 	const [items, setItems] = useState<PlannedTransaction[]>([]);
@@ -126,8 +125,8 @@ const Planner: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 	});
 
 	return (
-		<ScreenWrapper>
-			<View style={globalStyles.container}>
+		<ModalWrapper>
+			<View style={[globalStyles.container, { flex: 1 }]}>
 				<Header title={'Планування'} leftIcon={<BackButton />} />
 
 				{loading ? (
@@ -182,7 +181,7 @@ const Planner: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 
 							<View
 								style={{
-									borderColor: colors.neutral600,
+									borderColor: colors.neutral500,
 									borderBottomWidth: 1,
 									borderTopWidth: 1,
 									paddingVertical: 16,
@@ -244,12 +243,12 @@ const Planner: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 											activeOpacity={0.7}
 											onPress={() => handleTransactionPress(item)}
 										>
-											<BlurView intensity={25} tint="dark" style={globalStyles.transRow}>
+											<View style={globalStyles.transRow}>
 												<View style={globalStyles.transCategoryDes}>
 													<Typo size={16} fontWeight={'600'} color={colors.white}>
 														{item.title}
 													</Typo>
-													<Typo size={13} color={colors.neutral400}>
+													<Typo size={12} color={colors.neutral400}>
 														{item.dueDate}
 													</Typo>
 												</View>
@@ -269,7 +268,7 @@ const Planner: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 															: ''}
 													</Typo>
 												</View>
-											</BlurView>
+											</View>
 										</TouchableOpacity>
 									))}
 								</View>
@@ -278,8 +277,8 @@ const Planner: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 					</ScrollView>
 				)}
 			</View>
-		</ScreenWrapper>
+		</ModalWrapper>
 	);
 };
 
-export default Planner;
+export default CalendarModal;

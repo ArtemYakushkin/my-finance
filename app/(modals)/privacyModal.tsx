@@ -2,16 +2,16 @@ import BackButton from '@/components/BackButton';
 import Button from '@/components/Button';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import Header from '@/components/Header';
-import ScreenWrapper from '@/components/ScreenWrapper';
+import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
 import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
+import { showErrorToast, showInfoToast, showSuccessToast } from '@/utils/showToast';
 import { deleteUser, getAuth } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { useState } from 'react';
-import { Linking, ScrollView, Text, View } from 'react-native';
-import { showMessage } from 'react-native-flash-message';
+import { Image, Linking, ScrollView, Text, View } from 'react-native';
 
 interface PrivacyPolicyScreenProps {
 	onBack?: () => void;
@@ -75,7 +75,10 @@ const deleteUserDataAndAccount = async (): Promise<{ success: boolean; error?: s
 	}
 };
 
-const Privacy: React.FC<PrivacyPolicyScreenProps> = ({ onBack, supportEmail = 'artem.frontdeveloper@gmail.com' }) => {
+const PrivacyModal: React.FC<PrivacyPolicyScreenProps> = ({
+	onBack,
+	supportEmail = 'artem.frontdeveloper@gmail.com',
+}) => {
 	const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 
@@ -86,22 +89,10 @@ const Privacy: React.FC<PrivacyPolicyScreenProps> = ({ onBack, supportEmail = 'a
 			if (canOpen) {
 				await Linking.openURL(mailUrl);
 			} else {
-				showMessage({
-					message: 'Підтримка',
-					description: `Напишіть нам на пошту: ${supportEmail}`,
-					type: 'info',
-					backgroundColor: colors.gradientMid,
-					color: colors.primaryLight,
-				});
+				showInfoToast(`Напишіть нам на пошту: ${supportEmail}`);
 			}
 		} catch {
-			showMessage({
-				message: 'Помилка',
-				description: 'Не вдалося відкрити поштовий клієнт.',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Не вдалося відкрити поштовий клієнт');
 		}
 	};
 
@@ -112,27 +103,15 @@ const Privacy: React.FC<PrivacyPolicyScreenProps> = ({ onBack, supportEmail = 'a
 		setIsDeleteModalVisible(false);
 
 		if (!result.success) {
-			showMessage({
-				message: 'Помилка',
-				description: result.error,
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Не вдалося видалити обліковий запис');
 		} else {
-			showMessage({
-				message: 'Успіх',
-				description: "Ваш акаунт та всі пов'язані дані були успішно видалені.",
-				type: 'success',
-				backgroundColor: colors.gradientMid,
-				color: colors.primary,
-			});
+			showSuccessToast("Ваш акаунт та всі пов'язані дані були успішно видалені");
 		}
 	};
 
 	return (
-		<ScreenWrapper>
-			<View style={globalStyles.container}>
+		<ModalWrapper>
+			<View style={[globalStyles.container, { flex: 1 }]}>
 				<Header title={'Конфіденційність'} leftIcon={<BackButton />} />
 
 				<ScrollView contentContainerStyle={globalStyles.statScrollContent} showsVerticalScrollIndicator={false}>
@@ -200,6 +179,14 @@ const Privacy: React.FC<PrivacyPolicyScreenProps> = ({ onBack, supportEmail = 'a
 							</Typo>
 						</Button>
 					</View>
+
+					<View style={{ marginBottom: 24, alignItems: 'center' }}>
+						<Image
+							style={{ width: 150, height: 'auto', paddingBottom: 72 }}
+							resizeMode="contain"
+							source={require('../../assets/images/LogoDeveloperWhite.png')}
+						/>
+					</View>
 				</ScrollView>
 			</View>
 
@@ -212,8 +199,8 @@ const Privacy: React.FC<PrivacyPolicyScreenProps> = ({ onBack, supportEmail = 'a
 				onConfirm={handleConfirmDelete}
 				onCancel={() => setIsDeleteModalVisible(false)}
 			/>
-		</ScreenWrapper>
+		</ModalWrapper>
 	);
 };
 
-export default Privacy;
+export default PrivacyModal;

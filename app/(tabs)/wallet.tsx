@@ -22,6 +22,7 @@ type WalletType = {
 	image: any;
 	uid?: string;
 	created?: Date;
+	isExcludedFromTotal?: boolean;
 };
 
 const Wallet = () => {
@@ -33,18 +34,13 @@ const Wallet = () => {
 		loading,
 	} = useFetchData<WalletType>(
 		'wallets',
-		user?.uid
-			? [where('uid', '==', user?.uid), orderBy('created', 'desc')]
-			: [],
+		user?.uid ? [where('uid', '==', user?.uid), orderBy('created', 'asc')] : [],
 	);
 
 	const currencySymbol = getCurrencySymbol(user?.currency);
 
 	const getTotalBalance = () =>
-		wallets.reduce((total, item) => {
-			total = total + (item.amount || 0);
-			return total;
-		}, 0);
+		wallets.filter((item) => !item.isExcludedFromTotal).reduce((total, item) => total + (item.amount || 0), 0);
 
 	return (
 		<ScreenWrapper>
@@ -61,34 +57,19 @@ const Wallet = () => {
 					</View>
 				</View>
 
-				<LinearGradient
-					{...(MAIN_GRADIENT as any)}
-					style={globalStyles.walletBlock}
-				>
+				<LinearGradient {...(MAIN_GRADIENT as any)} style={globalStyles.walletBlock}>
 					<View style={globalStyles.walletFlexRow}>
 						<Typo size={20} fontWeight={'500'}>
 							Мої гаманці
 						</Typo>
-						<TouchableOpacity
-							onPress={() => router.push('/(modals)/walletModal')}
-						>
-							<Icons.PlusCircle
-								weight="fill"
-								color={colors.primaryLight}
-								size={33}
-							/>
+						<TouchableOpacity onPress={() => router.push('/(modals)/walletModal')}>
+							<Icons.PlusCircle weight="fill" color={colors.primaryLight} size={33} />
 						</TouchableOpacity>
 					</View>
 
 					<FlatList
 						data={wallets}
-						renderItem={({ item, index }) => (
-							<WalletItem
-								item={item}
-								index={index}
-								router={router}
-							/>
-						)}
+						renderItem={({ item, index }) => <WalletItem item={item} index={index} router={router} />}
 						contentContainerStyle={{ paddingBottom: 25 }}
 					/>
 				</LinearGradient>

@@ -22,12 +22,8 @@ const MonthModal = () => {
 				<Header title={'Поч.фін.місяця'} leftIcon={<BackButton />} />
 
 				<ScrollView contentContainerStyle={globalStyles.modalForm} keyboardShouldPersistTaps="handled">
-					<View style={{ gap: 15, paddingHorizontal: 10 }}>
-						<ScrollView
-							horizontal
-							showsHorizontalScrollIndicator={false}
-							contentContainerStyle={globalStyles.settingsDaysScroll}
-						>
+					<View style={{ gap: 15, paddingHorizontal: 6 }}>
+						<View style={globalStyles.settingsDaysGrid}>
 							{days.map((day) => {
 								const isSelected = user?.startOfMonth === day || (!user?.startOfMonth && day === 1);
 
@@ -49,7 +45,7 @@ const MonthModal = () => {
 									</TouchableOpacity>
 								);
 							})}
-						</ScrollView>
+						</View>
 
 						<Typo size={13} color={colors.neutral400}>
 							Ваш місячний бюджет та статистика будуть розраховуватися з {user?.startOfMonth || 1}-го

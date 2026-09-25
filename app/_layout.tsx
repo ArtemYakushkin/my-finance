@@ -38,14 +38,16 @@ function MainLayout() {
 		return (
 			<ScreenWrapper>
 				<View style={globalStyles.mainContainer}>
-					<Typo size={28} color={colors.neutral200} style={{ marginBottom: 20 }}>
-						- MY FINANCE -
-					</Typo>
-					<Image
-						style={globalStyles.logo}
-						resizeMode="contain"
-						source={require('../assets/images/logo.png')}
-					/>
+					<View style={{ justifyContent: 'center', alignItems: 'center', paddingTop: 100 }}>
+						<Typo size={28} color={colors.neutral200} style={{ marginBottom: 20 }}>
+							- My finance -
+						</Typo>
+						<Image
+							style={globalStyles.logo}
+							resizeMode="contain"
+							source={require('../assets/images/logo.png')}
+						/>
+					</View>
 				</View>
 			</ScreenWrapper>
 		);
@@ -55,27 +57,6 @@ function MainLayout() {
 		<Stack screenOptions={{ headerShown: false }}>
 			<Stack.Screen name="(tabs)" />
 			<Stack.Screen name="(auth)" />
-
-			<Stack.Screen
-				name="settings"
-				options={{
-					animation: 'slide_from_right',
-				}}
-			/>
-
-			<Stack.Screen
-				name="privacy"
-				options={{
-					animation: 'slide_from_right',
-				}}
-			/>
-
-			<Stack.Screen
-				name="planner"
-				options={{
-					animation: 'slide_from_right',
-				}}
-			/>
 
 			<Stack.Screen
 				name="(modals)/walletModal"
@@ -136,6 +117,46 @@ function MainLayout() {
 
 			<Stack.Screen
 				name="(modals)/plannedModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+
+			<Stack.Screen
+				name="(modals)/transactionModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+
+			<Stack.Screen
+				name="(modals)/settingsModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+
+			<Stack.Screen
+				name="(modals)/privacyModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+
+			<Stack.Screen
+				name="(modals)/calendarModal"
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+
+			<Stack.Screen
+				name="(modals)/exchangeRateModal"
 				options={{
 					presentation: 'transparentModal',
 					animation: 'slide_from_bottom',

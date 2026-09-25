@@ -1,13 +1,7 @@
 import { colors } from './theme';
 
-const gradientColors: [string, string, ...string[]] = [
-	colors.gradientStart,
-	colors.gradientMid,
-];
-const concavedGradientColors: [string, string] = [
-	colors.gradientMid as string,
-	colors.gradientEnd as string,
-];
+const gradientColors: [string, string, ...string[]] = [colors.gradientStart, colors.gradientMid];
+const concavedGradientColors: [string, string] = [colors.gradientMid as string, colors.gradientEnd as string];
 
 export const MAIN_GRADIENT = {
 	colors: [colors.gradientStart, colors.gradientMid, colors.gradientEnd],

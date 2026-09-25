@@ -18,6 +18,7 @@ export type TransactionData = {
 	type: 'expense' | 'income' | 'transfer';
 	amount: number;
 	walletId: string;
+	targetWalletId?: string | null;
 	toWalletId?: string;
 	categoryGroup?: string;
 	category?: string;
@@ -29,13 +30,17 @@ export const transactionService = {
 	createTransaction: async (data: TransactionData) => {
 		const transactionRef = doc(collection(db, 'transactions'));
 		const walletRef = doc(db, 'wallets', data.walletId);
-		const toWalletRef = data.toWalletId ? doc(db, 'wallets', data.toWalletId) : null;
+
+		// Определяем кошелек-получатель (для transfer или expense с targetWalletId)
+		const targetId = data.targetWalletId || data.toWalletId || null;
+		const targetWalletRef = targetId ? doc(db, 'wallets', targetId) : null;
 
 		await runTransaction(db, async (ts) => {
 			const walletSnap = await ts.get(walletRef);
 			if (!walletSnap.exists()) {
 				throw new Error('Основний гаманець не знайдено в системі');
 			}
+
 			const currentBalance = Number(walletSnap.data().amount || 0);
 			const currentTotalIncome = Number(walletSnap.data().totalIncome || 0);
 			const currentTotalExpenses = Number(walletSnap.data().totalExpenses || 0);
@@ -44,8 +49,8 @@ export const transactionService = {
 			let newTotalIncome = currentTotalIncome;
 			let newTotalExpenses = currentTotalExpenses;
 
-			let newToWalletBalance = 0;
-			let newToWalletIncome = 0;
+			let newTargetWalletBalance = 0;
+			let newTargetWalletIncome = 0;
 
 			if (data.type === 'expense') {
 				if (currentBalance < data.amount) {
@@ -53,33 +58,46 @@ export const transactionService = {
 				}
 				newBalance = currentBalance - data.amount;
 				newTotalExpenses = currentTotalExpenses + data.amount;
+
+				// Если у расхода есть целевой кошелек (например, Резерв)
+				if (targetWalletRef) {
+					const targetSnap = await ts.get(targetWalletRef);
+					if (targetSnap.exists()) {
+						const targetBalance = Number(targetSnap.data().amount || 0);
+						const targetIncome = Number(targetSnap.data().totalIncome || 0);
+						newTargetWalletBalance = targetBalance + data.amount;
+						newTargetWalletIncome = targetIncome + data.amount;
+					}
+				}
 			} else if (data.type === 'income') {
 				newBalance = currentBalance + data.amount;
 				newTotalIncome = currentTotalIncome + data.amount;
 			} else if (data.type === 'transfer') {
-				if (!toWalletRef) throw new Error('Не вказано цільовий гаманець для переказу');
+				if (!targetWalletRef) throw new Error('Не вказано цільовий гаманець для переказу');
 
-				const toWalletSnap = await ts.get(toWalletRef);
-				if (!toWalletSnap.exists()) {
+				const targetSnap = await ts.get(targetWalletRef);
+				if (!targetSnap.exists()) {
 					throw new Error('Цільовий гаманець для переказу не знайдено');
 				}
 				if (currentBalance < data.amount) {
 					throw new Error('Недостатньо коштів на гаманці для здійснення переказу');
 				}
 
-				const toWalletCurrentBalance = Number(toWalletSnap.data().amount || 0);
-				const toWalletCurrentIncome = Number(toWalletSnap.data().totalIncome || 0);
+				const targetBalance = Number(targetSnap.data().amount || 0);
+				const targetIncome = Number(targetSnap.data().totalIncome || 0);
 
 				newBalance = currentBalance - data.amount;
 				newTotalExpenses = currentTotalExpenses + data.amount;
 
-				newToWalletBalance = toWalletCurrentBalance + data.amount;
-				newToWalletIncome = toWalletCurrentIncome + data.amount;
+				newTargetWalletBalance = targetBalance + data.amount;
+				newTargetWalletIncome = targetIncome + data.amount;
 			}
 
 			ts.set(transactionRef, {
 				...data,
 				amount: Number(data.amount),
+				targetWalletId: targetId,
+				toWalletId: data.type === 'transfer' ? targetId : null,
 				date: Timestamp.fromDate(data.date),
 				createdAt: serverTimestamp(),
 			});
@@ -90,10 +108,10 @@ export const transactionService = {
 				totalExpenses: newTotalExpenses,
 			});
 
-			if (toWalletRef) {
-				ts.update(toWalletRef, {
-					amount: newToWalletBalance,
-					totalIncome: newToWalletIncome,
+			if (targetWalletRef) {
+				ts.update(targetWalletRef, {
+					amount: newTargetWalletBalance,
+					totalIncome: newTargetWalletIncome,
 				});
 			}
 		});
@@ -105,18 +123,24 @@ export const transactionService = {
 		await runTransaction(db, async (ts) => {
 			const oldWalletRef = doc(db, 'wallets', oldData.walletId);
 			const newWalletRef = doc(db, 'wallets', newData.walletId);
+
+			const oldTargetId = oldData.targetWalletId || oldData.toWalletId;
+			const newTargetId = newData.targetWalletId || newData.toWalletId;
+
 			const oldWalletSnap = await ts.get(oldWalletRef);
 			const newWalletSnap = await ts.get(newWalletRef);
-			let oldToWalletSnap = null;
-			if (oldData.type === 'transfer') {
-				const oldToWalletRef = doc(db, 'wallets', oldData.toWalletId);
-				oldToWalletSnap = await ts.get(oldToWalletRef);
+
+			let oldTargetSnap = null;
+			if (oldTargetId) {
+				oldTargetSnap = await ts.get(doc(db, 'wallets', oldTargetId));
 			}
-			let newToWalletSnap = null;
-			if (newData.type === 'transfer') {
-				const newToWalletRef = doc(db, 'wallets', newData.toWalletId);
-				newToWalletSnap = await ts.get(newToWalletRef);
+
+			let newTargetSnap = null;
+			if (newTargetId) {
+				newTargetSnap = await ts.get(doc(db, 'wallets', newTargetId));
 			}
+
+			// --- 1. Откатываем старую транзакцию ---
 			let oldWBalance = oldWalletSnap.exists() ? Number(oldWalletSnap.data().amount || 0) : 0;
 			let oldWIncome = oldWalletSnap.exists() ? Number(oldWalletSnap.data().totalIncome || 0) : 0;
 			let oldWExpenses = oldWalletSnap.exists() ? Number(oldWalletSnap.data().totalExpenses || 0) : 0;
@@ -125,6 +149,13 @@ export const transactionService = {
 				if (oldData.type === 'expense') {
 					oldWBalance += Number(oldData.amount);
 					oldWExpenses -= Number(oldData.amount);
+
+					if (oldTargetSnap && oldTargetSnap.exists()) {
+						ts.update(doc(db, 'wallets', oldTargetId), {
+							amount: Number(oldTargetSnap.data().amount || 0) - Number(oldData.amount),
+							totalIncome: Number(oldTargetSnap.data().totalIncome || 0) - Number(oldData.amount),
+						});
+					}
 				} else if (oldData.type === 'income') {
 					oldWBalance -= Number(oldData.amount);
 					oldWIncome -= Number(oldData.amount);
@@ -132,27 +163,30 @@ export const transactionService = {
 					oldWBalance += Number(oldData.amount);
 					oldWExpenses -= Number(oldData.amount);
 
-					if (oldToWalletSnap && oldToWalletSnap.exists()) {
-						ts.update(doc(db, 'wallets', oldData.toWalletId), {
-							amount: Number(oldToWalletSnap.data().amount || 0) - Number(oldData.amount),
-							totalIncome: Number(oldToWalletSnap.data().totalIncome || 0) - Number(oldData.amount),
+					if (oldTargetSnap && oldTargetSnap.exists()) {
+						ts.update(doc(db, 'wallets', oldTargetId), {
+							amount: Number(oldTargetSnap.data().amount || 0) - Number(oldData.amount),
+							totalIncome: Number(oldTargetSnap.data().totalIncome || 0) - Number(oldData.amount),
 						});
 					}
 				}
 			}
 
+			// --- 2. Применяем новую транзакцию ---
 			let newWBalance =
 				oldData.walletId === newData.walletId
 					? oldWBalance
 					: newWalletSnap.exists()
 						? Number(newWalletSnap.data().amount || 0)
 						: 0;
+
 			let newWIncome =
 				oldData.walletId === newData.walletId
 					? oldWIncome
 					: newWalletSnap.exists()
 						? Number(newWalletSnap.data().totalIncome || 0)
 						: 0;
+
 			let newWExpenses =
 				oldData.walletId === newData.walletId
 					? oldWExpenses
@@ -164,6 +198,26 @@ export const transactionService = {
 				if (newWBalance < Number(newData.amount)) throw new Error('Недостатньо коштів на гаманці');
 				newWBalance -= Number(newData.amount);
 				newWExpenses += Number(newData.amount);
+
+				if (newTargetId) {
+					if (!newTargetSnap || !newTargetSnap.exists()) throw new Error('Цільовий гаманець не знайдено');
+
+					// Если целевой кошелек совпадает со старым целевым, берем его свежий пересчитанный баланс
+					const baseAmount =
+						oldTargetId === newTargetId && oldTargetSnap?.exists()
+							? Number(oldTargetSnap.data().amount || 0) - Number(oldData.amount)
+							: Number(newTargetSnap.data().amount || 0);
+
+					const baseIncome =
+						oldTargetId === newTargetId && oldTargetSnap?.exists()
+							? Number(oldTargetSnap.data().totalIncome || 0) - Number(oldData.amount)
+							: Number(newTargetSnap.data().totalIncome || 0);
+
+					ts.update(doc(db, 'wallets', newTargetId), {
+						amount: baseAmount + Number(newData.amount),
+						totalIncome: baseIncome + Number(newData.amount),
+					});
+				}
 			} else if (newData.type === 'income') {
 				newWBalance += Number(newData.amount);
 				newWIncome += Number(newData.amount);
@@ -172,14 +226,25 @@ export const transactionService = {
 				newWBalance -= Number(newData.amount);
 				newWExpenses += Number(newData.amount);
 
-				if (!newToWalletSnap || !newToWalletSnap.exists()) throw new Error('Цільовий гаманець не знайдено');
+				if (!newTargetSnap || !newTargetSnap.exists()) throw new Error('Цільовий гаманець не знайдено');
 
-				ts.update(doc(db, 'wallets', newData.toWalletId), {
-					amount: Number(newToWalletSnap.data().amount || 0) + Number(newData.amount),
-					totalIncome: Number(newToWalletSnap.data().totalIncome || 0) + Number(newData.amount),
+				const baseAmount =
+					oldTargetId === newTargetId && oldTargetSnap?.exists()
+						? Number(oldTargetSnap.data().amount || 0) - Number(oldData.amount)
+						: Number(newTargetSnap.data().amount || 0);
+
+				const baseIncome =
+					oldTargetId === newTargetId && oldTargetSnap?.exists()
+						? Number(oldTargetSnap.data().totalIncome || 0) - Number(oldData.amount)
+						: Number(newTargetSnap.data().totalIncome || 0);
+
+				ts.update(doc(db, 'wallets', newTargetId), {
+					amount: baseAmount + Number(newData.amount),
+					totalIncome: baseIncome + Number(newData.amount),
 				});
 			}
 
+			// Обновляем исходные кошельки
 			if (oldData.walletId !== newData.walletId) {
 				if (oldWalletSnap.exists()) {
 					ts.update(oldWalletRef, {
@@ -188,27 +253,22 @@ export const transactionService = {
 						totalExpenses: oldWExpenses,
 					});
 				}
-				if (newWalletSnap.exists()) {
-					ts.update(newWalletRef, {
-						amount: newWBalance,
-						totalIncome: newWIncome,
-						totalExpenses: newWExpenses,
-					});
-				}
-			} else {
-				if (newWalletSnap.exists()) {
-					ts.update(newWalletRef, {
-						amount: newWBalance,
-						totalIncome: newWIncome,
-						totalExpenses: newWExpenses,
-					});
-				}
 			}
 
+			if (newWalletSnap.exists()) {
+				ts.update(newWalletRef, {
+					amount: newWBalance,
+					totalIncome: newWIncome,
+					totalExpenses: newWExpenses,
+				});
+			}
+
+			// Полезная нагрузка для документа транзакции
 			const updatePayload: any = {
 				type: newData.type,
 				amount: Number(newData.amount),
 				walletId: newData.walletId,
+				targetWalletId: newTargetId || null,
 				date: Timestamp.fromDate(newData.date),
 				description: newData.description || '',
 			};
@@ -222,7 +282,7 @@ export const transactionService = {
 				updatePayload.category = null;
 				updatePayload.toWalletId = null;
 			} else if (newData.type === 'transfer') {
-				updatePayload.toWalletId = newData.toWalletId;
+				updatePayload.toWalletId = newTargetId;
 				updatePayload.categoryGroup = null;
 				updatePayload.category = null;
 			}
@@ -234,6 +294,7 @@ export const transactionService = {
 	deleteTransaction: async (txId: string, oldData: any) => {
 		const txRef = doc(db, 'transactions', txId);
 		const walletRef = doc(db, 'wallets', oldData.walletId);
+		const targetId = oldData.targetWalletId || oldData.toWalletId;
 
 		await runTransaction(db, async (ts) => {
 			const walletSnap = await ts.get(walletRef);
@@ -247,19 +308,33 @@ export const transactionService = {
 			if (oldData.type === 'expense') {
 				balance += amount;
 				totalExpenses -= amount;
+
+				if (targetId) {
+					const targetWalletRef = doc(db, 'wallets', targetId);
+					const targetSnap = await ts.get(targetWalletRef);
+					if (targetSnap.exists()) {
+						ts.update(targetWalletRef, {
+							amount: Number(targetSnap.data().amount || 0) - amount,
+							totalIncome: Number(targetSnap.data().totalIncome || 0) - amount,
+						});
+					}
+				}
 			} else if (oldData.type === 'income') {
 				balance -= amount;
 				totalIncome -= amount;
 			} else if (oldData.type === 'transfer') {
 				balance += amount;
 				totalExpenses -= amount;
-				const toWalletRef = doc(db, 'wallets', oldData.toWalletId);
-				const toWalletSnap = await ts.get(toWalletRef);
-				if (toWalletSnap.exists()) {
-					ts.update(toWalletRef, {
-						amount: Number(toWalletSnap.data().amount || 0) - amount,
-						totalIncome: Number(toWalletSnap.data().totalIncome || 0) - amount,
-					});
+
+				if (targetId) {
+					const targetWalletRef = doc(db, 'wallets', targetId);
+					const targetSnap = await ts.get(targetWalletRef);
+					if (targetSnap.exists()) {
+						ts.update(targetWalletRef, {
+							amount: Number(targetSnap.data().amount || 0) - amount,
+							totalIncome: Number(targetSnap.data().totalIncome || 0) - amount,
+						});
+					}
 				}
 			}
 

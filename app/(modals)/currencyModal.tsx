@@ -3,14 +3,12 @@ import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { globalStyles } from '@/constants/global';
-import { SHADOW_OPTIONS } from '@/constants/shadow';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
+import { showErrorToast } from '@/utils/showToast';
 import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { showMessage } from 'react-native-flash-message';
-import { Shadow } from 'react-native-shadow-2';
 
 const currencies = [
 	{ label: 'Гривня', value: 'UAH', symbol: '₴' },
@@ -26,15 +24,9 @@ const CurrencyModal = () => {
 		if (!user?.uid) return;
 		const res = await updateUser(user.uid, { currency: currencyValue });
 		if (res.success) {
-			router.replace('/settings');
+			router.replace('/(modals)/settingsModal');
 		} else {
-			showMessage({
-				message: 'Помилка',
-				description: 'Не вдалося оновити валюту',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Не вдалося оновити валюту');
 		}
 	};
 
@@ -44,14 +36,23 @@ const CurrencyModal = () => {
 				<Header title={'Валюта'} leftIcon={<BackButton />} />
 
 				<ScrollView contentContainerStyle={globalStyles.modalForm} keyboardShouldPersistTaps="handled">
-					<View style={{ paddingHorizontal: 10 }}>
-						<Shadow {...SHADOW_OPTIONS.light} style={{ borderRadius: 20 }}>
-							<Shadow {...SHADOW_OPTIONS.dark} style={{ borderRadius: 20 }}>
-								<View style={globalStyles.profileOptions}>
-									{currencies.map((item) => (
+					<View>
+						<View style={globalStyles.profileOptions}>
+							{currencies.map((item, index) => {
+								const isLast = index === currencies.length - 1;
+								return (
+									<>
 										<TouchableOpacity
 											key={item.value}
-											style={globalStyles.settingsItem}
+											style={[
+												globalStyles.profileOptionsItem,
+												{
+													paddingVertical: 15,
+													flexDirection: 'row',
+													alignItems: 'center',
+													justifyContent: 'space-between',
+												},
+											]}
 											onPress={() => handleCurrencyChange(item.value)}
 										>
 											<View style={globalStyles.settingsInfo}>
@@ -67,10 +68,12 @@ const CurrencyModal = () => {
 												/>
 											)}
 										</TouchableOpacity>
-									))}
-								</View>
-							</Shadow>
-						</Shadow>
+
+										{!isLast && <View style={globalStyles.profileOptionsSeparator} />}
+									</>
+								);
+							})}
+						</View>
 					</View>
 				</ScrollView>
 			</View>

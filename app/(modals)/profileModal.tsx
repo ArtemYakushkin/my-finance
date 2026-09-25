@@ -8,13 +8,13 @@ import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
 import { getProfileImage } from '@/services/imageService';
+import { showErrorToast, showWarningToast } from '@/utils/showToast';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { showMessage } from 'react-native-flash-message';
 
 type UserDataType = {
 	name: string;
@@ -56,13 +56,7 @@ const ProfileModal = () => {
 		const { name, image } = userData;
 
 		if (!name.trim()) {
-			showMessage({
-				message: 'Користувач',
-				description: 'Будь ласка, заповніть усі поля',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showWarningToast('Будь ласка, заповніть усі поля');
 			return;
 		}
 		setLoading(true);
@@ -72,13 +66,7 @@ const ProfileModal = () => {
 		if (res.success) {
 			router.replace('/(tabs)/profile');
 		} else {
-			showMessage({
-				message: 'Користувач',
-				description: res.msg || 'Помилка оновлення',
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast(res.msg || 'Помилка оновлення');
 		}
 	};
 
@@ -100,8 +88,8 @@ const ProfileModal = () => {
 						</TouchableOpacity>
 					</View>
 
-					<View style={{ gap: 10, paddingHorizontal: 5 }}>
-						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
+					<View style={{ gap: 10 }}>
+						<Typo color={colors.neutral200} size={16}>
 							Ім'я
 						</Typo>
 						<Input
@@ -111,14 +99,14 @@ const ProfileModal = () => {
 						/>
 					</View>
 				</ScrollView>
+			</View>
 
-				<View style={globalStyles.modalFooter}>
-					<Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
-						<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
-							Оновити
-						</Typo>
-					</Button>
-				</View>
+			<View style={globalStyles.modalFooter}>
+				<Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
+					<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
+						Оновити
+					</Typo>
+				</Button>
 			</View>
 		</ModalWrapper>
 	);

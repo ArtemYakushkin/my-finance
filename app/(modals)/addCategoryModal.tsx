@@ -8,16 +8,98 @@ import { db } from '@/config/firebase';
 import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
+import { showErrorToast, showWarningToast } from '@/utils/showToast';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import * as Icons from 'phosphor-react-native';
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { showMessage } from 'react-native-flash-message';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 const categoryGroups = [
 	{ label: 'База', value: 'needs', color: colors.primary },
 	{ label: 'Хочу', value: 'desires', color: colors.rose },
 	{ label: 'Резерв', value: 'saving', color: colors.primaryLight },
+];
+
+// Список доступных иконок для финансовых категорий
+const CATEGORY_ICONS = [
+	// Еда и Напитки
+	'ShoppingBag',
+	'ShoppingCart',
+	'Utensils',
+	'Coffee',
+	'Pizza',
+	'Hamburger',
+	'Wine',
+	'Cake',
+
+	// Дом, Коммуналка и Быт
+	'House',
+	'Lightning',
+	'Drop',
+	'WifiHigh',
+	'Wrench',
+	'Trash',
+	'Key',
+	'Broom',
+
+	// Транспорт и Авто
+	'Car',
+	'GasPump',
+	'Bus',
+	'Train',
+	'Taxi',
+	'Bicycle',
+	'Airplane',
+	'NavigationArrow',
+
+	// Здоровье и Красота
+	'FirstAid',
+	'Activity',
+	'Pill',
+	'Barbell',
+	'Scissors',
+	'Sparkle',
+	'Smiley',
+
+	// Развлечения и Досуг
+	'GameController',
+	'FilmStrip',
+	'MusicalNotes',
+	'BookOpen',
+	'Ticket',
+	'Basketball',
+	'BeerBottle',
+	'Palette',
+
+	// Покупки и Подарки
+	'Tag',
+	'Gift',
+	'TShirt',
+	'Sneaker',
+	'Storefront',
+	'Package',
+
+	// Техника и Связь
+	'Phone',
+	'Desktop',
+	'Laptop',
+	'Headphones',
+	'Camera',
+	'Television',
+
+	// Финансы и Услуги
+	'CreditCard',
+	'Bank',
+	'Coins',
+	'Receipt',
+	'TrendingUp',
+	'ShieldCheck',
+	'GraduationCap',
+	'Briefcase',
+	'User',
+	'Users',
+	'PawPrint',
 ];
 
 const AddCategoryModal = () => {
@@ -28,30 +110,24 @@ const AddCategoryModal = () => {
 	const [loading, setLoading] = useState(false);
 	const [category, setCategory] = useState({
 		name: '',
+		icon: 'ShoppingBag',
 		type: type || 'expense',
 		group: group || 'needs',
 	});
 
 	const handleSaveCategory = async () => {
 		if (!category.name.trim()) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Введіть назву підкатегорії',
-				type: 'warning',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showWarningToast('Введіть назву підкатегорії');
+			return;
+		}
+
+		if (!category.icon) {
+			showWarningToast('Виберіть іконку для категорії');
 			return;
 		}
 
 		if (!user?.uid) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Користувач не авторизован',
-				type: 'warning',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Користувач не авторизован');
 			return;
 		}
 
@@ -60,19 +136,14 @@ const AddCategoryModal = () => {
 			await addDoc(collection(db, 'categories'), {
 				uid: user.uid,
 				name: category.name.trim(),
+				icon: category.icon,
 				type: category.type,
 				group: category.group,
 				createdAt: serverTimestamp(),
 			});
 			router.back();
 		} catch (error) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Не вдалося зберегти категорію. Спробуйте ще раз',
-				type: 'warning',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast('Не вдалося зберегти категорію. Спробуйте ще раз');
 		} finally {
 			setLoading(false);
 		}
@@ -88,8 +159,46 @@ const AddCategoryModal = () => {
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled"
 				>
-					<View style={{ gap: 10, paddingHorizontal: 5 }}>
-						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
+					{category.type === 'expense' && (
+						<View style={{ gap: 10 }}>
+							<Typo color={colors.neutral200} size={16}>
+								Виберіть групу
+							</Typo>
+							<View style={{ width: '100%' }}>
+								<View style={globalStyles.statSegmentWrap}>
+									{categoryGroups.map((groupItem) => {
+										const isActive = category.group === groupItem.value;
+										return (
+											<TouchableOpacity
+												key={groupItem.value}
+												style={globalStyles.statSegmentBtn}
+												onPress={() => setCategory({ ...category, group: groupItem.value })}
+											>
+												{isActive ? (
+													<View style={globalStyles.statSegmentActive}>
+														<Typo size={13} fontWeight={'500'} color={groupItem.color}>
+															{groupItem.label}
+														</Typo>
+													</View>
+												) : (
+													<Typo
+														size={13}
+														color={colors.neutral400}
+														style={{ textAlign: 'center' }}
+													>
+														{groupItem.label}
+													</Typo>
+												)}
+											</TouchableOpacity>
+										);
+									})}
+								</View>
+							</View>
+						</View>
+					)}
+
+					<View style={{ gap: 10 }}>
+						<Typo color={colors.neutral200} size={16}>
 							Назва підкатегорії
 						</Typo>
 						<Input
@@ -99,35 +208,49 @@ const AddCategoryModal = () => {
 						/>
 					</View>
 
-					{category.type === 'expense' && (
-						<View style={{ gap: 10, marginTop: 15 }}>
-							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
-								Виберіть групу
-							</Typo>
-							<View style={globalStyles.modalBtnWrap}>
-								{categoryGroups.map((groupItem) => {
-									const isActive = category.group === groupItem.value;
-									return (
-										<Button
-											key={groupItem.value}
-											onPress={() => setCategory({ ...category, group: groupItem.value })}
-											style={{
-												flex: 1,
-											}}
-										>
-											<Typo
-												size={14}
-												fontWeight={isActive ? '700' : '500'}
-												color={isActive ? groupItem.color : colors.neutral400}
-											>
-												{groupItem.label}
-											</Typo>
-										</Button>
-									);
-								})}
-							</View>
+					<View style={{ gap: 10 }}>
+						<Typo color={colors.neutral200} size={16}>
+							Виберіть іконку
+						</Typo>
+						<View
+							style={{
+								flexDirection: 'row',
+								flexWrap: 'wrap',
+								gap: 12,
+								justifyContent: 'space-between',
+							}}
+						>
+							{CATEGORY_ICONS.map((iconName) => {
+								const IconComponent = (Icons as Record<string, React.ComponentType<any>>)[iconName];
+								const isSelected = category.icon === iconName;
+
+								return (
+									<TouchableOpacity
+										key={iconName}
+										onPress={() => setCategory({ ...category, icon: iconName })}
+										style={{
+											width: 48,
+											height: 48,
+											borderRadius: 12,
+											borderWidth: 1,
+											borderColor: isSelected ? colors.primaryLight : colors.neutral500,
+											backgroundColor: isSelected ? colors.primaryLight : colors.gradientMid,
+											justifyContent: 'center',
+											alignItems: 'center',
+										}}
+									>
+										{IconComponent ? (
+											<IconComponent
+												size={24}
+												color={isSelected ? colors.neutral200 : colors.neutral200}
+												weight={isSelected ? 'bold' : 'regular'}
+											/>
+										) : null}
+									</TouchableOpacity>
+								);
+							})}
 						</View>
-					)}
+					</View>
 				</ScrollView>
 			</View>
 

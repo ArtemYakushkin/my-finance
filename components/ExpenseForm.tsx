@@ -1,35 +1,39 @@
-import { FormRefActions } from '@/app/(tabs)/transaction';
+import { FormRefActions } from '@/app/(modals)/transactionModal';
 import { globalStyles } from '@/constants/global';
-import { BUTTON_GRADIENT, INPUT_GRADIENT } from '@/constants/gradient';
-import { SHADOW_DROPDOWN, SHADOW_INPUT } from '@/constants/shadow';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/useAuth';
 import { transactionService } from '@/services/transactionService';
-import { LinearGradient } from 'expo-linear-gradient';
+import { showErrorToast, showWarningToast } from '@/utils/showToast';
 import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { Pressable, TouchableOpacity, View } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
-import { showMessage } from 'react-native-flash-message';
-import { Shadow } from 'react-native-shadow-2';
-import Button from './Button';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import {
+	Dimensions,
+	LayoutAnimation,
+	NativeScrollEvent,
+	NativeSyntheticEvent,
+	Platform,
+	Pressable,
+	ScrollView,
+	TouchableOpacity,
+	UIManager,
+	View,
+} from 'react-native';
 import CalculatorModal from './CalculatorModal';
 import CustomDatePickerModal from './CustomDatePickerModal';
 import Input from './Input';
 import Typo from './Typo';
 
-const categoryGroups = [
-	{ label: 'База', value: 'needs', color: '#4a90e2', icon: Icons.HouseLine },
-	{ label: 'Хочу', value: 'desires', color: '#ef4444', icon: Icons.Star },
-	{ label: 'Резерв', value: 'saving', color: '#a3e635', icon: Icons.PiggyBank },
-];
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+	UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type CategoryItem = {
 	label: string;
 	value: string;
 	group: string;
 	type: 'expense' | 'income';
+	icon?: React.ComponentType<any>;
 };
 
 type Props = {
@@ -39,32 +43,41 @@ type Props = {
 	oldData?: any;
 };
 
+// Расчет геометрии для горизонтального списка кошельков
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CONTAINER_PADDING = 16;
+const GAP = 12;
+const VISIBLE_ITEMS = 3;
+const ITEM_WIDTH = (SCREEN_WIDTH - CONTAINER_PADDING * 2 - GAP * (VISIBLE_ITEMS - 1)) / VISIBLE_ITEMS;
+
 const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [], setLoading, oldData }, ref) => {
 	const { user } = useAuth();
 	const router = useRouter();
 
 	const [walletId, setWalletId] = useState(oldData?.walletId || '');
-	const [selectedGroup, setSelectedGroup] = useState(oldData?.categoryGroup || '');
 	const [subCategory, setSubCategory] = useState(oldData?.category || '');
 	const [date, setDate] = useState(new Date());
 	const [amount, setAmount] = useState<number>(oldData?.amount || 0);
 	const [description, setDescription] = useState(oldData?.description || '');
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showCalcModal, setShowCalcModal] = useState(false);
+	const [isExpanded, setIsExpanded] = useState(false);
+	const [scrollOffset, setScrollOffset] = useState(0);
+	const [contentWidth, setContentWidth] = useState(0);
+	const [containerWidth, setContainerWidth] = useState(0);
 
 	const resetForm = () => {
 		setWalletId('');
-		setSelectedGroup('');
 		setSubCategory('');
 		setDate(new Date());
 		setAmount(0);
 		setDescription('');
+		setIsExpanded(false);
 	};
 
 	useEffect(() => {
 		if (oldData) {
 			setWalletId(oldData.walletId || '');
-			setSelectedGroup(oldData.categoryGroup || '');
 			setSubCategory(oldData.category || '');
 			setAmount(Number(oldData.amount || 0));
 			setDescription(oldData.description || '');
@@ -79,16 +92,36 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 				setDate(new Date());
 			}
 		} else {
-			setWalletId('');
-			setSelectedGroup('');
-			setSubCategory('');
-			setDate(new Date());
-			setAmount(0);
-			setDescription('');
+			resetForm();
 		}
 	}, [oldData]);
 
-	const currentSubCategories = categories.filter((cat) => cat.group === selectedGroup && cat.type === 'expense');
+	const allSubCategories = useMemo(() => {
+		return categories.filter((cat) => cat.type === 'expense');
+	}, [categories]);
+
+	const sortedSubCategories = useMemo(() => {
+		if (!subCategory) return allSubCategories;
+
+		const selectedItem = allSubCategories.find((item) => item.value === subCategory);
+		if (!selectedItem) return allSubCategories;
+
+		const filtered = allSubCategories.filter((item) => item.value !== subCategory);
+		return [selectedItem, ...filtered];
+	}, [allSubCategories, subCategory]);
+
+	const visibleSubCategories = isExpanded ? sortedSubCategories : sortedSubCategories.slice(0, 8);
+
+	const handleSelectSubCategory = (value: string) => {
+		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+		setSubCategory(value);
+		setIsExpanded(false);
+	};
+
+	const toggleExpand = () => {
+		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+		setIsExpanded(!isExpanded);
+	};
 
 	useImperativeHandle(ref, () => ({
 		submit: () => {
@@ -101,305 +134,285 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 			pathname: '/(modals)/addCategoryModal',
 			params: {
 				type: 'expense',
-				group: selectedGroup,
 			},
 		});
 	};
 
-	const handleCategorySelectPress = () => {
-		if (currentSubCategories.length === 0) {
-			handleNavigateToAddCategory();
-		}
-	};
-
 	const handleSaveExpense = async () => {
 		if (!user?.uid) return;
+
+		const selectedCategoryObj = allSubCategories.find((cat) => cat.value === subCategory);
+
 		if (!walletId) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Виберіть гаманець списання',
-				type: 'warning',
-				icon: 'warning',
-			});
-			return;
-		}
-		if (!selectedGroup) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Виберіть групу категорій',
-				type: 'warning',
-				icon: 'warning',
-			});
+			showWarningToast('Виберіть гаманець списання');
 			return;
 		}
 		if (!subCategory) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Виберіть або створіть підкатегорію',
-				type: 'warning',
-				icon: 'warning',
-			});
+			showWarningToast('Виберіть або створіть підкатегорію');
 			return;
 		}
 		if (amount <= 0) {
-			showMessage({
-				message: 'Помилка',
-				description: 'Сума повинна бути більша за 0',
-				type: 'warning',
-				icon: 'warning',
-			});
+			showWarningToast('Сума повинна бути більша за 0');
+			return;
+		}
+
+		const isReserveGroup = selectedCategoryObj?.group === 'saving' || selectedCategoryObj?.group === 'Резерв';
+
+		const reserveWallet = wallets.find((w) => {
+			const labelLower = (w.label || '').toLowerCase();
+
+			const hasExclusiveFlag =
+				Boolean((w as any).isExcludedFromTotal) ||
+				Boolean((w as any).isExcluded) ||
+				Boolean((w as any).isExclusive);
+
+			return (
+				w.value === 'pBlwvtk6KTj0rsxM3qtl' ||
+				labelLower.includes('заощад') ||
+				labelLower.includes('резерв') ||
+				labelLower.includes('накопич') ||
+				hasExclusiveFlag
+			);
+		});
+
+		const targetWalletId = isReserveGroup && reserveWallet ? reserveWallet.value : null;
+
+		if (isReserveGroup && !reserveWallet) {
+			showWarningToast('Не знайдено цільовий кошелек для резерву');
+			return;
+		}
+
+		if (isReserveGroup && reserveWallet && reserveWallet.value === walletId) {
+			showWarningToast('Неможливо переказувати з резервного гаманця в нього ж');
 			return;
 		}
 
 		try {
 			setLoading(true);
 
+			const payload = {
+				uid: user.uid,
+				type: 'expense' as const,
+				amount,
+				walletId,
+				targetWalletId,
+				categoryGroup: selectedCategoryObj?.group || '',
+				category: subCategory,
+				date,
+				description: description.trim(),
+			};
+
 			if (oldData?.id) {
-				await transactionService.updateTransaction(
-					oldData.id,
-					{
-						uid: user.uid,
-						type: 'expense',
-						amount,
-						walletId,
-						categoryGroup: selectedGroup,
-						category: subCategory,
-						date,
-						description: description.trim(),
-					},
-					oldData,
-				);
+				await transactionService.updateTransaction(oldData.id, payload, oldData);
 			} else {
-				await transactionService.createTransaction({
-					uid: user.uid,
-					type: 'expense',
-					amount,
-					walletId,
-					categoryGroup: selectedGroup,
-					category: subCategory,
-					date,
-					description: description.trim(),
-				});
+				await transactionService.createTransaction(payload);
 			}
 
 			resetForm();
 			router.replace('/(tabs)');
 		} catch (error: any) {
-			showMessage({
-				message: 'Помилка',
-				description: error.message || 'Щось пішло не так',
-				type: 'danger',
-				icon: 'danger',
-			});
+			showErrorToast(error.message || 'Щось пішло не так');
 		} finally {
 			setLoading(false);
 		}
 	};
 
+	// Расчет кастомного скроллбара
+	const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+		setScrollOffset(event.nativeEvent.contentOffset.x);
+	};
+	const maxScroll = contentWidth - containerWidth;
+	const showScrollbar = wallets.length > VISIBLE_ITEMS && maxScroll > 0;
+	const scrollbarTrackWidth = 60;
+	const scrollbarThumbWidth = Math.max(18, (containerWidth / (contentWidth || 1)) * scrollbarTrackWidth);
+	const thumbMaxTravel = scrollbarTrackWidth - scrollbarThumbWidth;
+	const thumbPosition = maxScroll > 0 ? (scrollOffset / maxScroll) * thumbMaxTravel : 0;
+
 	return (
-		<View style={{ gap: 20, paddingBottom: 40 }}>
-			{/* Вибір кошелька */}
+		<View style={{ gap: 20 }}>
+			{/* Выбор кошелька*/}
 			<View style={{ gap: 10 }}>
-				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
+				<Typo color={colors.neutral200} size={16}>
 					Гаманець
 				</Typo>
-				<View style={globalStyles.modalDropdownShadowHolder}>
-					<Shadow {...SHADOW_DROPDOWN.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
-						<Shadow {...SHADOW_DROPDOWN.dark} style={{ alignSelf: 'stretch' }}>
-							<LinearGradient
-								{...(BUTTON_GRADIENT as any)}
-								style={{
-									borderRadius: 17,
-									overflow: 'hidden',
-									height: 56,
-									justifyContent: 'center',
-								}}
-							>
-								<Dropdown
-									style={[
-										globalStyles.modalDropdownContainer,
-										{ backgroundColor: 'transparent', borderWidth: 0 },
-									]}
-									activeColor={colors.gradientStart}
-									placeholderStyle={{ color: colors.white }}
-									selectedTextStyle={{ color: colors.white, fontSize: 14 }}
-									iconStyle={{ height: 30, tintColor: colors.neutral300 }}
-									maxHeight={300}
-									itemTextStyle={{ color: colors.white }}
-									itemContainerStyle={{ borderRadius: 15, marginHorizontal: 7 }}
-									containerStyle={{
-										backgroundColor: colors.gradientEnd,
-										borderRadius: 15,
-										borderCurve: 'continuous',
-										paddingVertical: 7,
-										top: 5,
-										borderColor: colors.gradientStart,
-										shadowColor: colors.black,
-										shadowOffset: { width: 0, height: 5 },
-										shadowOpacity: 1,
-										shadowRadius: 15,
-										elevation: 5,
-									}}
-									data={wallets}
-									labelField="label"
-									valueField="value"
-									placeholder={'Вибрати гаманець'}
-									value={walletId}
-									onChange={(item) => setWalletId(item.value)}
-								/>
-							</LinearGradient>
-						</Shadow>
-					</Shadow>
-				</View>
-			</View>
+				<View style={{ gap: 6 }}>
+					<ScrollView
+						horizontal
+						showsHorizontalScrollIndicator={false}
+						onScroll={handleScroll}
+						scrollEventThrottle={16}
+						onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+						onContentSizeChange={(w) => setContentWidth(w)}
+						contentContainerStyle={{ gap: GAP }}
+					>
+						{wallets.map((wallet) => {
+							const isSelected = walletId === wallet.value;
+							const match = wallet.label.match(/^(.*?)\s*(\(.*\))?$/);
+							const walletName = match?.[1] || wallet.label;
+							const walletBalance = match?.[2] || '';
 
-			{/* Вибір групи категорій */}
-			<View style={{ gap: 10 }}>
-				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
-					Група категорій
-				</Typo>
-				<View style={globalStyles.modalBtnWrap}>
-					{categoryGroups.map((group) => {
-						const isActive = selectedGroup === group.value;
-						return (
-							<Button
-								key={group.value}
-								onPress={() => {
-									setSelectedGroup(group.value);
-									setSubCategory('');
-								}}
-								style={{ flex: 1 }}
-							>
-								<Typo
-									size={14}
-									fontWeight={isActive ? '700' : '500'}
-									color={isActive ? group.color : colors.neutral400}
+							return (
+								<TouchableOpacity
+									key={wallet.value}
+									onPress={() => setWalletId(wallet.value)}
+									style={{ alignItems: 'center', width: ITEM_WIDTH }}
 								>
-									{group.label}
-								</Typo>
-							</Button>
-						);
-					})}
-				</View>
-			</View>
-
-			{/* Вибір і створення підкатегорії */}
-			{selectedGroup && (
-				<View style={{ gap: 10 }}>
-					<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
-						Підкатегорія
-					</Typo>
-
-					{currentSubCategories.length > 0 ? (
-						<View style={globalStyles.modalDropdownShadowHolder}>
-							<Shadow {...SHADOW_DROPDOWN.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
-								<Shadow {...SHADOW_DROPDOWN.dark} style={{ alignSelf: 'stretch' }}>
-									<LinearGradient
-										{...(BUTTON_GRADIENT as any)}
-										style={{
-											borderRadius: 17,
-											overflow: 'hidden',
-											height: 56,
-											justifyContent: 'center',
-										}}
+									<View
+										style={[
+											globalStyles.transWalletItem,
+											isSelected && {
+												borderColor: colors.primaryLight,
+												backgroundColor: colors.gradientStart,
+											},
+										]}
 									>
-										<Dropdown
-											style={[
-												globalStyles.modalDropdownContainer,
-												{ backgroundColor: 'transparent', borderWidth: 0 },
-											]}
-											activeColor={colors.gradientStart}
-											placeholderStyle={{ color: colors.white }}
-											selectedTextStyle={{
-												color: colors.white,
-												fontSize: 14,
-											}}
-											iconStyle={{ height: 30, tintColor: colors.neutral300 }}
-											maxHeight={300}
-											itemTextStyle={{ color: colors.white }}
-											itemContainerStyle={{
-												borderRadius: 15,
-												marginHorizontal: 7,
-											}}
-											containerStyle={{
-												backgroundColor: colors.gradientEnd,
-												borderRadius: 15,
-												borderCurve: 'continuous',
-												paddingVertical: 7,
-												top: 5,
-												borderColor: colors.gradientStart,
-												shadowColor: colors.black,
-												shadowOffset: { width: 0, height: 5 },
-												shadowOpacity: 1,
-												shadowRadius: 15,
-												elevation: 5,
-											}}
-											data={currentSubCategories}
-											labelField="label"
-											valueField="value"
-											placeholder={'Вибрати підкатегорію'}
-											onFocus={handleCategorySelectPress}
-											value={subCategory}
-											onChange={(item) => setSubCategory(item.value)}
-										/>
-									</LinearGradient>
-								</Shadow>
-							</Shadow>
+										<View style={{ alignItems: 'center' }}>
+											<Typo
+												size={13}
+												fontWeight={500}
+												color={isSelected ? colors.neutral200 : colors.neutral400}
+											>
+												{walletName}
+											</Typo>
+											<Typo
+												size={13}
+												fontWeight={500}
+												color={isSelected ? colors.neutral200 : colors.neutral400}
+											>
+												{walletBalance}
+											</Typo>
+										</View>
+									</View>
+								</TouchableOpacity>
+							);
+						})}
+					</ScrollView>
+
+					{showScrollbar && (
+						<View style={globalStyles.transWalletScrollBar}>
+							<View
+								style={[
+									{ height: '100%', backgroundColor: colors.neutral500, borderRadius: 2 },
+									{
+										width: scrollbarThumbWidth,
+										transform: [{ translateX: thumbPosition }],
+									},
+								]}
+							/>
 						</View>
-					) : (
-						<Typo color={colors.rose} size={14} style={{ marginTop: 10, paddingLeft: 10 }}>
-							У цій групі ще немає категорій. Додати?
-						</Typo>
 					)}
-
-					<TouchableOpacity style={globalStyles.modalAddCategory} onPress={handleNavigateToAddCategory}>
-						<Icons.PlusCircle weight="fill" color={colors.primaryLight} size={33} />
-						<Typo color={colors.neutral500} size={16}>
-							Додати підкатегорію витрат
-						</Typo>
-					</TouchableOpacity>
-				</View>
-			)}
-
-			{/* Блок дати */}
-			<View style={{ gap: 10, paddingHorizontal: 5 }}>
-				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
-					Дата
-				</Typo>
-				<View style={globalStyles.modalInputContainer}>
-					<Shadow {...SHADOW_INPUT.light} style={{ alignSelf: 'stretch' }}>
-						<Shadow {...SHADOW_INPUT.dark} style={{ alignSelf: 'stretch' }}>
-							<LinearGradient {...INPUT_GRADIENT} style={globalStyles.modalInputInner}>
-								<Pressable style={globalStyles.modalInput} onPress={() => setShowDatePicker(true)}>
-									<Typo size={14}>{date.toLocaleDateString('uk-UA')}</Typo>
-								</Pressable>
-							</LinearGradient>
-						</Shadow>
-					</Shadow>
 				</View>
 			</View>
 
-			{/* Блок введення суми */}
-			<View style={{ gap: 10, paddingHorizontal: 5 }}>
-				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
-					Сума
+			{/* Выбор категории*/}
+			<View style={{ gap: 10 }}>
+				<Typo color={colors.neutral200} size={16}>
+					Категорія витрат
 				</Typo>
-				<View style={globalStyles.modalInputContainer}>
-					<Shadow {...SHADOW_INPUT.light} style={{ alignSelf: 'stretch' }}>
-						<Shadow {...SHADOW_INPUT.dark} style={{ alignSelf: 'stretch' }}>
-							<LinearGradient {...INPUT_GRADIENT} style={globalStyles.modalInputInner}>
-								<Pressable style={globalStyles.modalInput} onPress={() => setShowCalcModal(true)}>
-									<Typo size={14}>{amount === 0 ? 'Ввести суму' : `${amount}`}</Typo>
-								</Pressable>
-							</LinearGradient>
-						</Shadow>
-					</Shadow>
+
+				{allSubCategories.length > 0 ? (
+					<View style={{ gap: 10 }}>
+						<View style={globalStyles.transCatContainer}>
+							{visibleSubCategories.map((item) => {
+								const isActive = subCategory === item.value;
+								const IconComponent = item.icon;
+
+								return (
+									<TouchableOpacity
+										key={item.value}
+										onPress={() => handleSelectSubCategory(item.value)}
+										style={globalStyles.transCatItem}
+									>
+										<View
+											style={[
+												globalStyles.transCatIcon,
+												isActive && { borderColor: colors.primaryLight },
+											]}
+										>
+											{IconComponent ? (
+												<IconComponent
+													size={24}
+													color={isActive ? colors.primaryLight : colors.neutral400}
+												/>
+											) : null}
+										</View>
+
+										<Typo
+											size={13}
+											fontWeight={500}
+											color={isActive ? colors.primaryLight : colors.neutral400}
+											style={{ textAlign: 'center' }}
+										>
+											{item.label}
+										</Typo>
+									</TouchableOpacity>
+								);
+							})}
+						</View>
+
+						{sortedSubCategories.length > 8 && (
+							<TouchableOpacity onPress={toggleExpand} style={globalStyles.transCatExpandButton}>
+								<Typo color={colors.primaryLight} size={14} fontWeight={600}>
+									{isExpanded ? 'Згорнути' : `Ще (${sortedSubCategories.length - 8})`}
+								</Typo>
+								{isExpanded ? (
+									<Icons.CaretUp color={colors.primaryLight} size={18} />
+								) : (
+									<Icons.CaretDown color={colors.primaryLight} size={18} />
+								)}
+							</TouchableOpacity>
+						)}
+					</View>
+				) : (
+					<Typo size={15} color={colors.neutral400} style={{ textAlign: 'center', marginTop: 15 }}>
+						Категорій ще немає. Додати?
+					</Typo>
+				)}
+			</View>
+
+			{/* Кнопка добавления подкатегории */}
+			<View>
+				<TouchableOpacity style={globalStyles.modalAddCategory} onPress={handleNavigateToAddCategory}>
+					<Icons.PlusCircle weight="fill" color={colors.primaryLight} size={33} />
+					<Typo color={colors.neutral300} size={16}>
+						Додати підкатегорію витрат
+					</Typo>
+				</TouchableOpacity>
+			</View>
+
+			<View style={{ flexDirection: 'row', gap: 10 }}>
+				{/*Дата*/}
+				<View style={{ gap: 10, flex: 1 }}>
+					<Typo color={colors.neutral200} size={16}>
+						Дата
+					</Typo>
+					<View style={globalStyles.modalInputContainer}>
+						<View style={globalStyles.modalInputInner}>
+							<Pressable style={globalStyles.modalInput} onPress={() => setShowDatePicker(true)}>
+								<Typo size={14}>{date.toLocaleDateString('uk-UA')}</Typo>
+							</Pressable>
+						</View>
+					</View>
+				</View>
+
+				{/*Сумма*/}
+				<View style={{ gap: 10, flex: 1 }}>
+					<Typo color={colors.neutral200} size={16}>
+						Сума
+					</Typo>
+					<View style={globalStyles.modalInputContainer}>
+						<View style={globalStyles.modalInputInner}>
+							<Pressable style={globalStyles.modalInput} onPress={() => setShowCalcModal(true)}>
+								<Typo size={14}>{amount === 0 ? 'Ввести суму' : `${amount}`}</Typo>
+							</Pressable>
+						</View>
+					</View>
 				</View>
 			</View>
 
-			{/* Блок опису */}
-			<View style={{ gap: 10, paddingHorizontal: 5 }}>
-				<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
+			{/*Описание*/}
+			<View style={{ gap: 10 }}>
+				<Typo color={colors.neutral200} size={16}>
 					Опис
 				</Typo>
 				<Input value={description} onChangeText={setDescription} />

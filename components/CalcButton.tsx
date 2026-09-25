@@ -1,37 +1,51 @@
 import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
-import * as Icons from 'phosphor-react-native';
-import { View } from 'react-native';
-import Button from './Button';
+import { IconProps } from 'phosphor-react-native';
+import { TouchableOpacity, View } from 'react-native';
 import Typo from './Typo';
 
 interface CalcButtonProps {
-	text: string;
+	text?: string;
+	icon?: React.ComponentType<IconProps>;
 	onPress: () => void;
 	isDone?: boolean;
 	isEqual?: boolean;
 	isDouble?: boolean;
+	isOperator?: boolean;
 }
 
-const CalcButton = ({ text, onPress, isDone, isEqual, isDouble }: CalcButtonProps) => {
-	let textColor = colors.neutral400;
+const CalcButton = ({ text, icon: Icon, onPress, isDone, isEqual, isDouble, isOperator }: CalcButtonProps) => {
+	let textColor = colors.neutral100;
+	let textSize = 20;
 
 	if (isEqual) textColor = colors.primary;
 	if (isDone) {
 		textColor = colors.primaryLight;
 	}
+	if (isOperator) textColor = colors.orange;
+	if (isOperator) textSize = 28;
 
 	return (
 		<View style={[globalStyles.calcButtonWrapper, isDouble && globalStyles.calcButtonDouble]}>
-			<Button onPress={onPress}>
-				{text === 'back' ? (
-					<Icons.Backspace size={22} color={textColor} weight="bold" style={{ paddingVertical: 3 }} />
+			<TouchableOpacity
+				onPress={onPress}
+				style={{
+					height: 54,
+					alignItems: 'center',
+					justifyContent: 'center',
+					borderWidth: 0.5,
+					borderRadius: 12,
+					borderColor: colors.neutral500,
+				}}
+			>
+				{Icon ? (
+					<Icon size={22} color={textColor} weight="bold" />
 				) : (
-					<Typo size={20} fontWeight="700" color={textColor}>
+					<Typo size={textSize} fontWeight="700" color={textColor}>
 						{text}
 					</Typo>
 				)}
-			</Button>
+			</TouchableOpacity>
 		</View>
 	);
 };

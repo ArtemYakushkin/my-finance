@@ -1,15 +1,8 @@
+import { globalStyles } from '@/constants/global';
 import { BUTTON_GRADIENT } from '@/constants/gradient';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-	TouchableOpacity,
-	TouchableOpacityProps,
-	View,
-	ViewStyle,
-} from 'react-native';
-import { Shadow } from 'react-native-shadow-2';
-
-import { globalStyles } from '@/constants/global';
-import { SHADOW_BUTTON } from '@/constants/shadow';
+import React from 'react';
+import { TouchableOpacity, TouchableOpacityProps, View, ViewStyle } from 'react-native';
 import Loading from './Loading';
 
 interface CustomButtonProps extends TouchableOpacityProps {
@@ -19,51 +12,32 @@ interface CustomButtonProps extends TouchableOpacityProps {
 	children: React.ReactNode;
 }
 
-const Button = ({
-	style,
-	onPress,
-	loading = false,
-	children,
-}: CustomButtonProps) => {
+const Button = ({ style, onPress, loading = false, children, ...props }: CustomButtonProps) => {
 	if (loading) {
 		return (
-			<View
-				style={[
-					globalStyles.button,
-					style,
-					{ backgroundColor: 'transparent' },
-				]}
-			>
+			<View style={[globalStyles.button, style, { backgroundColor: 'transparent' }]}>
 				<Loading />
 			</View>
 		);
 	}
 
 	return (
-		<View style={[style, { alignSelf: 'stretch', margin: 5 }]}>
-			<Shadow
-				{...SHADOW_BUTTON.light}
-				style={{ borderRadius: 17, alignSelf: 'stretch' }}
-			>
-				<Shadow
-					{...SHADOW_BUTTON.dark}
-					style={{ alignSelf: 'stretch' }}
-				>
-					<TouchableOpacity
-						onPress={onPress}
-						activeOpacity={0.9}
-						style={{ borderRadius: 17, overflow: 'hidden' }}
-					>
-						<LinearGradient
-							{...BUTTON_GRADIENT}
-							style={globalStyles.button}
-						>
-							{children}
-						</LinearGradient>
-					</TouchableOpacity>
-				</Shadow>
-			</Shadow>
-		</View>
+		<TouchableOpacity
+			onPress={onPress}
+			activeOpacity={0.8}
+			style={[
+				{
+					borderRadius: 17,
+					overflow: 'hidden',
+				},
+				style,
+			]}
+			{...props}
+		>
+			<LinearGradient {...BUTTON_GRADIENT} style={globalStyles.button}>
+				{children}
+			</LinearGradient>
+		</TouchableOpacity>
 	);
 };
 

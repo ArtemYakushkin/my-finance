@@ -1,6 +1,6 @@
 import BackButton from '@/components/BackButton';
 import Header from '@/components/Header';
-import ScreenWrapper from '@/components/ScreenWrapper';
+import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { globalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
@@ -17,7 +17,7 @@ type settingsOptionsType = {
 	onPress?: () => void;
 };
 
-const Settings = () => {
+const SettingsModal = () => {
 	const router = useRouter();
 
 	const settingsOptions: settingsOptionsType[] = [
@@ -25,19 +25,19 @@ const Settings = () => {
 			title: 'Валюта за замовчуванням',
 			icon: <Icons.CurrencyCircleDollar size={24} color={colors.white} weight="fill" />,
 			routeName: '/(modals)/currencyModal',
-			bgColor: '#292e3a',
+			bgColor: colors.green,
 		},
 		{
 			title: 'Початок фінансового місяця',
 			icon: <Icons.CalendarDots size={24} color={colors.white} weight="fill" />,
 			routeName: '/(modals)/monthModal',
-			bgColor: '#171921',
+			bgColor: colors.orange,
 		},
 		{
 			title: 'Налаштування категорій',
 			icon: <Icons.AlignBottom size={24} color={colors.white} weight="fill" />,
 			routeName: '/(modals)/manageCatModal',
-			bgColor: '#0c0d12',
+			bgColor: colors.primaryDark,
 		},
 	];
 
@@ -48,43 +48,46 @@ const Settings = () => {
 	};
 
 	return (
-		<ScreenWrapper>
-			<View style={globalStyles.container}>
+		<ModalWrapper>
+			<View style={[globalStyles.container, { flex: 1 }]}>
 				<Header title={'Налаштування'} leftIcon={<BackButton />} />
 
 				<ScrollView contentContainerStyle={globalStyles.statScrollContent} showsVerticalScrollIndicator={false}>
-					{settingsOptions.map((item, index) => {
-						return (
-							<Animated.View entering={FadeInDown.delay(index * 50).springify()} key={index}>
-								<TouchableOpacity
-									style={[globalStyles.profileOptionsItem, { paddingHorizontal: 10 }]}
-									activeOpacity={0.6}
-									onPress={() => handlePress(item)}
-								>
-									<View
-										style={[
-											globalStyles.profileOptionsIcon,
-											{
-												backgroundColor: item.bgColor,
-											},
-										]}
+					<View style={globalStyles.profileOptions}>
+						{settingsOptions.map((item, index) => {
+							const isLast = index === settingsOptions.length - 1;
+							return (
+								<Animated.View entering={FadeInDown.delay(index * 50).springify()} key={index}>
+									<TouchableOpacity
+										style={globalStyles.profileOptionsItem}
+										activeOpacity={0.6}
+										onPress={() => handlePress(item)}
 									>
-										{item.icon}
-									</View>
-									<Typo size={16} fontWeight={'500'} style={{ flex: 1 }}>
-										{item.title}
-									</Typo>
-									<Icons.CaretRight size={18} weight="bold" color={colors.neutral500} />
-								</TouchableOpacity>
+										<View
+											style={[
+												globalStyles.profileOptionsIcon,
+												{
+													backgroundColor: item.bgColor,
+												},
+											]}
+										>
+											{item.icon}
+										</View>
+										<Typo size={16} fontWeight={'500'} style={{ flex: 1 }}>
+											{item.title}
+										</Typo>
+										<Icons.CaretRight size={18} weight="bold" color={colors.neutral500} />
+									</TouchableOpacity>
 
-								<View style={globalStyles.profileOptionsSeparator} />
-							</Animated.View>
-						);
-					})}
+									{!isLast && <View style={globalStyles.profileOptionsSeparator} />}
+								</Animated.View>
+							);
+						})}
+					</View>
 				</ScrollView>
 			</View>
-		</ScreenWrapper>
+		</ModalWrapper>
 	);
 };
 
-export default Settings;
+export default SettingsModal;

@@ -2,37 +2,32 @@ import { globalStyles } from '@/constants/global';
 import { MAIN_GRADIENT } from '@/constants/gradient';
 import { colors } from '@/constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Icons from 'phosphor-react-native';
 import { useEffect, useState } from 'react'; // Добавили useEffect
-import { Dimensions, Modal, View } from 'react-native';
+import { Modal, View } from 'react-native';
 import CalcButton from './CalcButton';
-import CalcButtonOperators from './CalcButtonOperators';
 import Typo from './Typo';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface CalculatorProps {
 	isVisible: boolean;
-	onClose: () => void; // Убрали отсюда передачу строки, закрытие должно быть чистым
+	onClose: () => void;
 	initialValue: string;
 	onSelectAmount: (value: number) => void;
 }
 
 const CalculatorModal = ({ isVisible, onClose, initialValue, onSelectAmount }: CalculatorProps) => {
-	// Если прилетает '0', лучше показать пустую строку, чтобы пользователь сразу вводил цифры
 	const [expression, setExpression] = useState('0');
 
-	// СИНХРОНИЗАЦИЯ: Каждый раз, когда модалка открывается, подтягиваем актуальное значение из формы
 	useEffect(() => {
 		if (isVisible) {
 			setExpression(initialValue && initialValue !== '0' ? initialValue : '0');
 		}
 	}, [isVisible, initialValue]);
 
-	// Вспомогательная функция для безопасного вычисления выражения
 	const evaluateExpression = (expr: string): number => {
 		try {
 			const sanitized = expr.replace(/×/g, '*').replace(/÷/g, '/');
-			// Если строка пустая или дефолтная
+
 			if (!sanitized || sanitized === '0') return 0;
 
 			const result = eval(sanitized);
@@ -44,23 +39,55 @@ const CalculatorModal = ({ isVisible, onClose, initialValue, onSelectAmount }: C
 		}
 	};
 
+	const isOp = (char: string) => ['+', '-', '×', '÷'].includes(char);
+
 	const handlePress = (val: string) => {
 		if (val === 'C') {
 			setExpression('0');
-		} else if (val === '=') {
+			return;
+		}
+
+		if (val === 'back') {
+			setExpression((prev) => (prev.length > 1 ? prev.slice(0, -1) : '0'));
+			return;
+		}
+
+		if (val === '=') {
 			const result = evaluateExpression(expression);
 			setExpression(String(result));
-		} else if (val === 'back') {
-			setExpression((prev) => (prev.length > 1 ? prev.slice(0, -1) : '0'));
-		} else {
-			setExpression((prev) => (prev === '0' && val !== '.' ? val : prev + val));
+			return;
 		}
+
+		if (isOp(val)) {
+			setExpression((prev) => {
+				const lastChar = prev.slice(-1);
+
+				if (isOp(lastChar)) {
+					return prev.slice(0, -1) + val;
+				}
+
+				const hasExistingOperator = /[+×÷-]/.test(prev.slice(1));
+				if (hasExistingOperator) {
+					const evaluated = evaluateExpression(prev);
+					return String(evaluated) + val;
+				}
+
+				return prev + val;
+			});
+			return;
+		}
+
+		setExpression((prev) => {
+			if (prev === '0' && val !== '.') {
+				return val;
+			}
+			return prev + val;
+		});
 	};
 
-	// ФУНКЦИЯ ПОДТВЕРЖДЕНИЯ: Считает результат, отдает число родителю и закрывает модалку
 	const handleConfirm = () => {
 		const finalAmount = evaluateExpression(expression);
-		onSelectAmount(finalAmount); // Отправляем число (например: 150) в ExpenseForm
+		onSelectAmount(finalAmount);
 	};
 
 	return (
@@ -72,39 +99,36 @@ const CalculatorModal = ({ isVisible, onClose, initialValue, onSelectAmount }: C
 				>
 					<View style={globalStyles.calcDisplayWrapper}>
 						<View style={globalStyles.calcDisplayInner}>
-							<Typo size={50} fontWeight="600" color={colors.white}>
+							<Typo size={50} fontWeight="600" color={colors.neutral100}>
 								{expression}
 							</Typo>
 						</View>
 					</View>
 
 					<View style={{ marginTop: 'auto' }}>
-						<View style={globalStyles.calcButtonOperators}>
-							<CalcButtonOperators text="+" onPress={() => handlePress('+')} />
-							<CalcButtonOperators text="-" onPress={() => handlePress('-')} />
-							<CalcButtonOperators text="×" onPress={() => handlePress('×')} />
-							<CalcButtonOperators text="÷" onPress={() => handlePress('÷')} />
-						</View>
-
 						<View style={globalStyles.calcGrid}>
 							<CalcButton text="1" onPress={() => handlePress('1')} />
 							<CalcButton text="2" onPress={() => handlePress('2')} />
 							<CalcButton text="3" onPress={() => handlePress('3')} />
+							<CalcButton icon={Icons.Divide} onPress={() => handlePress('÷')} isOperator />
 
 							<CalcButton text="4" onPress={() => handlePress('4')} />
 							<CalcButton text="5" onPress={() => handlePress('5')} />
 							<CalcButton text="6" onPress={() => handlePress('6')} />
+							<CalcButton icon={Icons.X} onPress={() => handlePress('×')} isOperator />
 
 							<CalcButton text="7" onPress={() => handlePress('7')} />
 							<CalcButton text="8" onPress={() => handlePress('8')} />
 							<CalcButton text="9" onPress={() => handlePress('9')} />
+							<CalcButton icon={Icons.Minus} onPress={() => handlePress('-')} isOperator />
 
 							<CalcButton text="C" onPress={() => handlePress('C')} />
 							<CalcButton text="0" onPress={() => handlePress('0')} />
-							<CalcButton text="back" onPress={() => handlePress('back')} />
+							<CalcButton icon={Icons.Backspace} onPress={() => handlePress('back')} />
+							<CalcButton icon={Icons.Plus} onPress={() => handlePress('+')} isOperator />
 
-							<CalcButton text="=" onPress={() => handlePress('=')} isEqual isDouble />
-							<CalcButton text="Done" onPress={handleConfirm} isDone isDouble />
+							<CalcButton icon={Icons.Equals} onPress={() => handlePress('=')} isEqual isDouble />
+							<CalcButton text="Ok" onPress={handleConfirm} isDone isDouble />
 						</View>
 					</View>
 				</LinearGradient>

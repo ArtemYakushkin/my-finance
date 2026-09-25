@@ -2,22 +2,19 @@ import Header from '@/components/Header';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { globalStyles } from '@/constants/global';
-import { BUTTON_GRADIENT, MAIN_GRADIENT } from '@/constants/gradient';
-import { SHADOW_BLOCK } from '@/constants/shadow';
 import { colors } from '@/constants/theme';
 import { categoryGroups } from '@/constants/types';
 import { useAuth } from '@/context/useAuth';
 import { fetchCategories, fetchMonthStats, fetchYearStats } from '@/services/transactionService';
 import { getCurrencySymbol } from '@/utils/common';
-import { LinearGradient } from 'expo-linear-gradient';
+import { showErrorToast } from '@/utils/showToast';
 import { useFocusEffect } from 'expo-router';
 import { Timestamp } from 'firebase/firestore';
+import * as Icons from 'phosphor-react-native';
 import { CaretLeft, CaretRight, Icon } from 'phosphor-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { showMessage } from 'react-native-flash-message';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
-import { Shadow } from 'react-native-shadow-2';
 
 type TransactionType = {
 	id?: string;
@@ -43,7 +40,7 @@ type CategoryType = {
 
 const Statistics = () => {
 	const { user } = useAuth();
-	const [activeIndex, setActiveIndex] = useState(1);
+	const [activeIndex, setActiveIndex] = useState(0);
 	const [selectedDate, setSelectedDate] = useState(new Date());
 	const [userCategories, setUserCategories] = useState<CategoryType[]>([]);
 	const [loading, setLoading] = useState(false);
@@ -81,22 +78,10 @@ const Statistics = () => {
 					transactions: res.data.transactions || [],
 				});
 			} else {
-				showMessage({
-					message: 'Помилка',
-					description: res?.msg || 'Не вдалося завантажити статистику',
-					type: 'danger',
-					backgroundColor: colors.gradientMid,
-					color: colors.rose,
-				});
+				showErrorToast(res?.msg || 'Не вдалося завантажити статистику');
 			}
 		} catch (error) {
-			showMessage({
-				message: 'Помилка',
-				description: "Не вдалося завантажити статистику. Перевірте з'єднання",
-				type: 'danger',
-				backgroundColor: colors.gradientMid,
-				color: colors.rose,
-			});
+			showErrorToast("Не вдалося завантажити статистику. Перевірте з'єднання");
 		} finally {
 			setLoading(false);
 		}
@@ -214,43 +199,31 @@ const Statistics = () => {
 				<Header title="Статистика" />
 
 				<ScrollView
-					contentContainerStyle={[globalStyles.statScrollContent, { gap: 30, paddingHorizontal: 10 }]}
+					contentContainerStyle={[globalStyles.statScrollContent, { gap: 30 }]}
 					showsVerticalScrollIndicator={false}
 				>
 					<View>
-						<Shadow {...SHADOW_BLOCK.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
-							<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
-								<View style={globalStyles.statSegmentWrap}>
-									{['Місяць', 'Рік'].map((label, index) => (
-										<TouchableOpacity
-											key={label}
-											style={globalStyles.statSegmentBtn}
-											onPress={() => setActiveIndex(index)}
-										>
-											{activeIndex === index ? (
-												<View style={globalStyles.statSegmentActive}>
-													<Text
-														style={{ color: colors.white, fontWeight: '700', fontSize: 13 }}
-													>
-														{label}
-													</Text>
-												</View>
-											) : (
-												<Text
-													style={{
-														color: colors.neutral400,
-														textAlign: 'center',
-														fontSize: 13,
-													}}
-												>
-													{label}
-												</Text>
-											)}
-										</TouchableOpacity>
-									))}
-								</View>
-							</Shadow>
-						</Shadow>
+						<View style={globalStyles.statSegmentWrap}>
+							{['Місяць', 'Рік'].map((label, index) => (
+								<TouchableOpacity
+									key={label}
+									style={globalStyles.statSegmentBtn}
+									onPress={() => setActiveIndex(index)}
+								>
+									{activeIndex === index ? (
+										<View style={globalStyles.statSegmentActive}>
+											<Typo size={13} fontWeight={'500'} color={colors.neutral50}>
+												{label}
+											</Typo>
+										</View>
+									) : (
+										<Typo size={13} color={colors.neutral400} style={{ textAlign: 'center' }}>
+											{label}
+										</Typo>
+									)}
+								</TouchableOpacity>
+							))}
+						</View>
 					</View>
 
 					<View style={globalStyles.statDateWrap}>
@@ -265,181 +238,139 @@ const Statistics = () => {
 						</TouchableOpacity>
 					</View>
 
-					<View>
-						<Shadow {...SHADOW_BLOCK.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
-							<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
-								<LinearGradient {...(MAIN_GRADIENT as any)} style={globalStyles.statPieInner}>
-									<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
-										Співвідношення бюджету
-									</Typo>
-									{incomeExpensePieData.length > 0 ? (
-										<View style={globalStyles.statPieContainer}>
-											<PieChart
-												data={incomeExpensePieData}
-												donut
-												showGradient
-												radius={100}
-												innerRadius={70}
-												innerCircleColor={colors.gradientMid}
-												centerLabelComponent={() => {
-													const inc =
-														incomeExpensePieData.find((i) => i.text === 'Дохід')?.value ||
-														0;
-													const exp =
-														incomeExpensePieData.find((i) => i.text === 'Витрати')?.value ||
-														0;
-													const balance = inc - exp;
-													return (
-														<View style={{ alignItems: 'center' }}>
-															<Typo size={10} color={colors.neutral400}>
-																Баланс
-															</Typo>
-															<Typo
-																size={14}
-																fontWeight={'700'}
-																color={balance >= 0 ? '#a3e635' : '#ef4444'}
-															>
-																{balance >= 0 ? '+' : ''}
-																{balance.toLocaleString()}
-															</Typo>
-														</View>
-													);
-												}}
-											/>
-
-											<View style={globalStyles.statPieLegend}>
-												{incomeExpensePieData.map((item, idx) => (
-													<View key={idx} style={globalStyles.statPieLegendItem}>
-														<View
-															style={[
-																globalStyles.statPieLegendDot,
-																{ backgroundColor: item.color },
-															]}
-														/>
-														<Typo size={13} color={colors.neutral300}>
-															{item.text}
-														</Typo>
-														<Typo size={13} fontWeight={'700'}>
-															{currencySymbol}
-															{item.value.toLocaleString()}
-														</Typo>
-													</View>
-												))}
+					<View style={globalStyles.statPieInner}>
+						<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
+							Співвідношення бюджету
+						</Typo>
+						{incomeExpensePieData.length > 0 ? (
+							<View style={globalStyles.statPieContainer}>
+								<PieChart
+									data={incomeExpensePieData}
+									donut
+									showGradient
+									radius={85}
+									innerRadius={60}
+									innerCircleColor={colors.gradientMid}
+									centerLabelComponent={() => {
+										const inc = incomeExpensePieData.find((i) => i.text === 'Дохід')?.value || 0;
+										const exp = incomeExpensePieData.find((i) => i.text === 'Витрати')?.value || 0;
+										const balance = inc - exp;
+										return (
+											<View style={{ alignItems: 'center' }}>
+												<Typo size={12} color={colors.neutral400}>
+													Баланс
+												</Typo>
+												<Typo
+													size={14}
+													fontWeight={'700'}
+													color={balance >= 0 ? '#a3e635' : '#ef4444'}
+												>
+													{balance >= 0 ? '+' : ''}
+													{balance.toLocaleString()}
+												</Typo>
 											</View>
+										);
+									}}
+								/>
+
+								<View style={globalStyles.statPieLegend}>
+									{incomeExpensePieData.map((item, idx) => (
+										<View key={idx} style={globalStyles.statPieLegendItem}>
+											<View
+												style={[globalStyles.statPieLegendDot, { backgroundColor: item.color }]}
+											/>
+											<Typo size={13} color={colors.neutral300}>
+												{item.text}
+											</Typo>
+											<Typo size={13} fontWeight={'700'}>
+												{currencySymbol}
+												{item.value.toLocaleString()}
+											</Typo>
 										</View>
-									) : (
-										<View style={globalStyles.noDataContainer}>
-											<Typo color={colors.neutral400}>Немає даних</Typo>
-										</View>
-									)}
-								</LinearGradient>
-							</Shadow>
-						</Shadow>
+									))}
+								</View>
+							</View>
+						) : (
+							<View style={globalStyles.noDataContainer}>
+								<Typo color={colors.neutral400}>Немає даних</Typo>
+							</View>
+						)}
 					</View>
 
-					<View>
-						<Shadow {...SHADOW_BLOCK.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
-							<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
-								<LinearGradient {...(MAIN_GRADIENT as any)} style={globalStyles.statPieInner}>
-									<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
-										Розподіл витрат
-									</Typo>
-									{pieData.length > 0 ? (
-										<View style={globalStyles.statPieContainer}>
-											<PieChart
-												data={pieData}
-												donut
-												showGradient
-												radius={100}
-												innerRadius={70}
-												innerCircleColor={colors.gradientMid}
-												centerLabelComponent={() => (
-													<View style={{ alignItems: 'center' }}>
-														<Typo size={12} color={colors.neutral400}>
-															Всього
-														</Typo>
-														<Typo size={16} fontWeight={'700'}>
-															{currencySymbol}{' '}
-															{pieData
-																.reduce((acc, cur) => acc + cur.value, 0)
-																.toLocaleString()}
-														</Typo>
-													</View>
-												)}
-											/>
-											<View style={globalStyles.statPieLegend}>
-												{pieData.map((item, idx) => (
-													<View key={idx} style={globalStyles.statPieLegendItem}>
-														<View
-															style={[
-																globalStyles.statPieLegendDot,
-																{ backgroundColor: item.color },
-															]}
-														/>
-														<Typo size={13} color={colors.neutral300}>
-															{item.text}
-														</Typo>
-														<Typo size={13} fontWeight={'600'}>
-															{(
-																(item.value /
-																	pieData.reduce((a, b) => a + b.value, 0)) *
-																100
-															).toFixed(1)}
-															%
-														</Typo>
-													</View>
-												))}
-											</View>
-										</View>
-									) : (
-										<View style={globalStyles.noDataContainer}>
-											<Typo color={colors.neutral400}>Немає даних</Typo>
+					<View style={globalStyles.statPieInner}>
+						<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
+							Розподіл витрат
+						</Typo>
+						{pieData.length > 0 ? (
+							<View style={globalStyles.statPieContainer}>
+								<PieChart
+									data={pieData}
+									donut
+									showGradient
+									radius={85}
+									innerRadius={60}
+									innerCircleColor={colors.gradientMid}
+									centerLabelComponent={() => (
+										<View style={{ alignItems: 'center' }}>
+											<Typo size={12} color={colors.neutral400}>
+												Всього
+											</Typo>
+											<Typo size={16} fontWeight={'700'}>
+												{currencySymbol}{' '}
+												{pieData.reduce((acc, cur) => acc + cur.value, 0).toLocaleString()}
+											</Typo>
 										</View>
 									)}
-								</LinearGradient>
-							</Shadow>
-						</Shadow>
+								/>
+								<View style={globalStyles.statPieLegend}>
+									{pieData.map((item, idx) => (
+										<View key={idx} style={globalStyles.statPieLegendItem}>
+											<View
+												style={[globalStyles.statPieLegendDot, { backgroundColor: item.color }]}
+											/>
+											<Typo size={13} color={colors.neutral300}>
+												{item.text}
+											</Typo>
+											<Typo size={13} fontWeight={'600'}>
+												{(
+													(item.value / pieData.reduce((a, b) => a + b.value, 0)) *
+													100
+												).toFixed(1)}
+												%
+											</Typo>
+										</View>
+									))}
+								</View>
+							</View>
+						) : (
+							<View style={globalStyles.noDataContainer}>
+								<Typo color={colors.neutral400}>Немає даних</Typo>
+							</View>
+						)}
 					</View>
 
-					<View style={{ gap: 20 }}>
+					<View style={{ gap: 12 }}>
 						<Typo size={18} fontWeight={'600'} style={{ textAlign: 'center' }}>
 							Деталі по категоріях
 						</Typo>
 						{subCategories.map((item, index) => {
-							const IconComponent = item.icon;
+							const iconKey = item.icon as unknown as string;
+							const IconComponent = (Icons as Record<string, any>)[iconKey] || Icons.Question;
 							return (
-								<Shadow
-									key={index}
-									{...SHADOW_BLOCK.light}
-									style={{ borderRadius: 17, alignSelf: 'stretch' }}
-								>
-									<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
-										<LinearGradient
-											{...(BUTTON_GRADIENT as any)}
-											style={globalStyles.statCategoryCard}
-										>
-											<View style={globalStyles.statCategoryInfo}>
-												<View
-													style={[
-														globalStyles.statIconWrapper,
-														{ backgroundColor: item.color },
-													]}
-												>
-													{IconComponent && (
-														<IconComponent size={20} weight="fill" color={colors.white} />
-													)}
-												</View>
-												<Typo size={16} fontWeight={'500'}>
-													{item.name}
-												</Typo>
-											</View>
-											<Typo size={16} fontWeight={'700'}>
-												{currencySymbol}
-												{item.amount.toLocaleString()}
-											</Typo>
-										</LinearGradient>
-									</Shadow>
-								</Shadow>
+								<View style={globalStyles.statCategoryCard} key={index}>
+									<View style={globalStyles.statCategoryInfo}>
+										<View style={[globalStyles.statIconWrapper, { backgroundColor: item.color }]}>
+											<IconComponent size={20} weight="fill" color={colors.white} />
+										</View>
+										<Typo size={16} fontWeight={'500'}>
+											{item.name}
+										</Typo>
+									</View>
+									<Typo size={16} fontWeight={'700'}>
+										{currencySymbol}
+										{item.amount.toLocaleString()}
+									</Typo>
+								</View>
 							);
 						})}
 					</View>
