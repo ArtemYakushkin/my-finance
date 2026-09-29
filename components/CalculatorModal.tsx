@@ -1,6 +1,6 @@
-import { globalStyles } from '@/constants/global';
-import { MAIN_GRADIENT } from '@/constants/gradient';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { getGradients } from '@/constants/gradient';
+import { useTheme } from '@/context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Icons from 'phosphor-react-native';
 import { useEffect, useState } from 'react'; // Добавили useEffect
@@ -17,6 +17,10 @@ interface CalculatorProps {
 
 const CalculatorModal = ({ isVisible, onClose, initialValue, onSelectAmount }: CalculatorProps) => {
 	const [expression, setExpression] = useState('0');
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+	const { MAIN_GRADIENT } = getGradients(colors);
 
 	useEffect(() => {
 		if (isVisible) {

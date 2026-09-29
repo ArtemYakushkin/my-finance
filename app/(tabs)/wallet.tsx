@@ -1,9 +1,9 @@
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import WalletItem from '@/components/WalletItem';
-import { globalStyles } from '@/constants/global';
-import { MAIN_GRADIENT } from '@/constants/gradient';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { getGradients } from '@/constants/gradient';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import useFetchData from '@/hooks/useFetchData';
 import { getCurrencySymbol } from '@/utils/common';
@@ -37,6 +37,10 @@ const Wallet = () => {
 		user?.uid ? [where('uid', '==', user?.uid), orderBy('created', 'asc')] : [],
 	);
 
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+	const { MAIN_GRADIENT } = getGradients(colors);
+
 	const currencySymbol = getCurrencySymbol(user?.currency);
 
 	const getTotalBalance = () =>
@@ -47,7 +51,7 @@ const Wallet = () => {
 			<View style={globalStyles.walletContainer}>
 				<View style={globalStyles.walletBalance}>
 					<View style={{ alignItems: 'center' }}>
-						<Typo size={45} fontWeight={'500'}>
+						<Typo size={45} fontWeight={'500'} color={colors.neutral100}>
 							{currencySymbol}
 							{getTotalBalance()?.toFixed(2)}
 						</Typo>
@@ -59,7 +63,7 @@ const Wallet = () => {
 
 				<LinearGradient {...(MAIN_GRADIENT as any)} style={globalStyles.walletBlock}>
 					<View style={globalStyles.walletFlexRow}>
-						<Typo size={20} fontWeight={'500'}>
+						<Typo size={20} fontWeight={'500'} color={colors.neutral100}>
 							Мої гаманці
 						</Typo>
 						<TouchableOpacity onPress={() => router.push('/(modals)/walletModal')}>

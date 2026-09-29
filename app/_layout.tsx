@@ -1,7 +1,7 @@
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { AuthProvider, useAuth } from '@/context/useAuth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -15,6 +15,9 @@ function MainLayout() {
 	const segments = useSegments();
 	const router = useRouter();
 	const [isAppReady, setIsAppReady] = useState(false);
+
+	const { colors } = useTheme();
+	const globalStyles = getGlobalStyles(colors);
 
 	useEffect(() => {
 		const timer = setTimeout(() => {
@@ -39,14 +42,14 @@ function MainLayout() {
 			<ScreenWrapper>
 				<View style={globalStyles.mainContainer}>
 					<View style={{ justifyContent: 'center', alignItems: 'center', paddingTop: 100 }}>
-						<Typo size={28} color={colors.neutral200} style={{ marginBottom: 20 }}>
-							- My finance -
-						</Typo>
 						<Image
 							style={globalStyles.logo}
 							resizeMode="contain"
 							source={require('../assets/images/logo.png')}
 						/>
+						<Typo size={24} color={colors.neutral200} style={{ marginBottom: 20 }}>
+							My finance
+						</Typo>
 					</View>
 				</View>
 			</ScreenWrapper>
@@ -168,17 +171,19 @@ function MainLayout() {
 
 export default function RootLayout() {
 	return (
-		<AuthProvider>
-			<MainLayout />
+		<ThemeProvider>
+			<AuthProvider>
+				<MainLayout />
 
-			<FlashMessage
-				position="top"
-				floating={true}
-				titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
-				textStyle={{ fontSize: 14 }}
-				duration={3500}
-				style={{ marginTop: 40 }}
-			/>
-		</AuthProvider>
+				<FlashMessage
+					position="top"
+					floating={true}
+					titleStyle={{ fontSize: 18, fontWeight: 'bold' }}
+					textStyle={{ fontSize: 14 }}
+					duration={3500}
+					style={{ marginTop: 40 }}
+				/>
+			</AuthProvider>
+		</ThemeProvider>
 	);
 }

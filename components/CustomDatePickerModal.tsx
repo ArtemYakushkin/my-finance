@@ -1,6 +1,6 @@
-import { globalStyles } from '@/constants/global';
-import { INPUT_GRADIENT } from '@/constants/gradient';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { getGradients } from '@/constants/gradient';
+import { useTheme } from '@/context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CaretLeftIcon, CaretRightIcon } from 'phosphor-react-native';
 import { useState } from 'react';
@@ -38,6 +38,10 @@ const CustomDatePickerModal: React.FC<CustomDatePickerModalProps> = ({
 }) => {
 	const [currentMonth, setCurrentMonth] = useState(new Date(initialDate));
 	const [selectedDate, setSelectedDate] = useState<Date>(initialDate);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+	const { MAIN_GRADIENT } = getGradients(colors);
 
 	const year = currentMonth.getFullYear();
 	const month = currentMonth.getMonth();
@@ -83,12 +87,12 @@ const CustomDatePickerModal: React.FC<CustomDatePickerModalProps> = ({
 	return (
 		<Modal visible={isVisible} animationType="fade" transparent>
 			<View style={globalStyles.calendarOverlay}>
-				<LinearGradient {...INPUT_GRADIENT} style={globalStyles.confModalBox}>
+				<LinearGradient {...MAIN_GRADIENT} style={globalStyles.confModalBox}>
 					<View style={globalStyles.calendarHeader}>
 						<TouchableOpacity onPress={() => changeMonth(-1)}>
 							<CaretLeftIcon size={26} color={colors.primaryLight} weight="bold" />
 						</TouchableOpacity>
-						<Typo size={16} fontWeight="700" color={colors.white}>
+						<Typo size={16} fontWeight="700" color={colors.neutral100}>
 							{MONTH_NAMES[month]} {year}
 						</Typo>
 						<TouchableOpacity onPress={() => changeMonth(1)}>
@@ -128,7 +132,7 @@ const CustomDatePickerModal: React.FC<CustomDatePickerModalProps> = ({
 									<Typo
 										size={14}
 										fontWeight={isSelected || isToday ? '700' : '400'}
-										color={isSelected ? colors.black : colors.white}
+										color={isSelected ? colors.neutral900 : colors.neutral100}
 									>
 										{item.getDate()}
 									</Typo>

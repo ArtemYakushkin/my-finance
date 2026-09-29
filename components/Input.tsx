@@ -1,5 +1,5 @@
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 
 interface InputProps extends TextInputProps {
@@ -10,6 +10,9 @@ interface InputProps extends TextInputProps {
 }
 
 const Input = (props: InputProps) => {
+	const { colors } = useTheme();
+	const globalStyles = getGlobalStyles(colors);
+
 	return (
 		<View style={[props.containerStyle, { alignSelf: 'stretch' }]}>
 			<View style={globalStyles.inputBaseBackground}>

@@ -2,8 +2,8 @@ import BackButton from '@/components/BackButton';
 import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
@@ -20,22 +20,31 @@ type settingsOptionsType = {
 const SettingsModal = () => {
 	const router = useRouter();
 
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+
 	const settingsOptions: settingsOptionsType[] = [
 		{
 			title: 'Валюта за замовчуванням',
-			icon: <Icons.CurrencyCircleDollar size={24} color={colors.white} weight="fill" />,
+			icon: (
+				<Icons.CurrencyCircleDollar
+					size={24}
+					color={isDark ? colors.neutral100 : colors.neutral900}
+					weight="fill"
+				/>
+			),
 			routeName: '/(modals)/currencyModal',
 			bgColor: colors.green,
 		},
 		{
 			title: 'Початок фінансового місяця',
-			icon: <Icons.CalendarDots size={24} color={colors.white} weight="fill" />,
+			icon: <Icons.CalendarDots size={24} color={isDark ? colors.neutral100 : colors.neutral900} weight="fill" />,
 			routeName: '/(modals)/monthModal',
 			bgColor: colors.orange,
 		},
 		{
 			title: 'Налаштування категорій',
-			icon: <Icons.AlignBottom size={24} color={colors.white} weight="fill" />,
+			icon: <Icons.AlignBottom size={24} color={isDark ? colors.neutral100 : colors.neutral900} weight="fill" />,
 			routeName: '/(modals)/manageCatModal',
 			bgColor: colors.primaryDark,
 		},
@@ -73,7 +82,12 @@ const SettingsModal = () => {
 										>
 											{item.icon}
 										</View>
-										<Typo size={16} fontWeight={'500'} style={{ flex: 1 }}>
+										<Typo
+											size={16}
+											fontWeight={'500'}
+											color={colors.neutral100}
+											style={{ flex: 1 }}
+										>
 											{item.title}
 										</Typo>
 										<Icons.CaretRight size={18} weight="bold" color={colors.neutral500} />

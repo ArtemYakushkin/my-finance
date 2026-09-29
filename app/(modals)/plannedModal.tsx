@@ -8,9 +8,9 @@ import Loading from '@/components/Loading';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { auth, db } from '@/config/firebase';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
 import { PlannedTransaction } from '@/constants/types';
+import { useTheme } from '@/context/ThemeContext';
 import { showErrorToast, showSuccessToast, showWarningToast } from '@/utils/showToast';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -44,11 +44,6 @@ const transactionTypes = [
 	{ label: 'Дохід', value: 'income' },
 ] as const;
 
-const transactionColors: Record<string, string> = {
-	income: colors.primary,
-	expense: colors.rose,
-};
-
 const PlannedModal = () => {
 	const router = useRouter();
 	const params = useLocalSearchParams<{
@@ -76,6 +71,14 @@ const PlannedModal = () => {
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 	const [isExpanded, setIsExpanded] = useState(false);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+
+	const transactionColors: Record<string, string> = {
+		income: colors.primary,
+		expense: colors.rose,
+	};
 
 	useEffect(() => {
 		fetchCategories();
@@ -327,7 +330,7 @@ const PlannedModal = () => {
 							<View style={globalStyles.statSegmentWrap}>
 								{transactionTypes.map((item) => {
 									const isActive = type === item.value;
-									const activeTextColor = transactionColors[item.value] || colors.white;
+									const activeTextColor = transactionColors[item.value] || colors.neutral100;
 									return (
 										<TouchableOpacity
 											key={item.value}
@@ -384,6 +387,7 @@ const PlannedModal = () => {
 														{IconComponent ? (
 															<IconComponent
 																size={24}
+																weight={isSelected ? 'fill' : 'bold'}
 																color={
 																	isSelected ? colors.primaryLight : colors.neutral400
 																}
@@ -504,7 +508,9 @@ const PlannedModal = () => {
 							<View style={globalStyles.modalInputContainer}>
 								<View style={globalStyles.modalInputInner}>
 									<Pressable style={globalStyles.modalInput} onPress={() => setShowDatePicker(true)}>
-										<Typo size={14}>{date.toLocaleDateString('uk-UA')}</Typo>
+										<Typo size={14} color={colors.neutral100}>
+											{date.toLocaleDateString('uk-UA')}
+										</Typo>
 									</Pressable>
 								</View>
 							</View>
@@ -517,7 +523,9 @@ const PlannedModal = () => {
 							<View style={globalStyles.modalInputContainer}>
 								<View style={globalStyles.modalInputInner}>
 									<Pressable style={globalStyles.modalInput} onPress={() => setShowCalcModal(true)}>
-										<Typo size={14}>{amount === 0 ? 'Ввести суму' : `${amount}`}</Typo>
+										<Typo size={14} color={colors.neutral100}>
+											{amount === 0 ? 'Ввести суму' : `${amount}`}
+										</Typo>
 									</Pressable>
 								</View>
 							</View>

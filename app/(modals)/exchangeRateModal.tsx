@@ -3,8 +3,8 @@ import Header from '@/components/Header';
 import Loading from '@/components/Loading';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { CurrencyItem, fetchPopularRates, getFlagUrl } from '@/services/nbuApi';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -13,6 +13,9 @@ import { FlatList, View } from 'react-native';
 const ExchangeRateModal = () => {
 	const [rates, setRates] = useState<CurrencyItem[]>([]);
 	const [loading, setLoading] = useState(true);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	useEffect(() => {
 		fetchPopularRates().then((data) => {

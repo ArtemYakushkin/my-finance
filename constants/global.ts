@@ -1,857 +1,858 @@
-import { colors } from '@/constants/theme';
+import { darkColors } from '@/constants/theme';
 import { Platform, StyleSheet } from 'react-native';
 
-export const globalStyles = StyleSheet.create({
-	mainContainer: {
-		flex: 1,
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		backgroundColor: 'transparent',
-	},
+export const getGlobalStyles = (colors: typeof darkColors, isDark: boolean = true) =>
+	StyleSheet.create({
+		mainContainer: {
+			flex: 1,
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			backgroundColor: 'transparent',
+		},
 
-	logo: {
-		height: 'auto',
-		width: 150,
-		aspectRatio: 1,
-	},
+		logo: {
+			height: 'auto',
+			width: 150,
+			aspectRatio: 1,
+		},
 
-	container: {
-		flex: 1,
-		paddingHorizontal: 10,
-	},
+		container: {
+			flex: 1,
+			paddingHorizontal: 10,
+		},
 
-	// ----Header----
+		// ----Header----
 
-	headerTop: {
-		width: '100%',
-		alignItems: 'center',
-		flexDirection: 'row',
-		marginBottom: 10,
-	},
-	headerIcon: {
-		alignSelf: 'flex-start',
-	},
+		headerTop: {
+			width: '100%',
+			alignItems: 'center',
+			flexDirection: 'row',
+			marginBottom: 10,
+		},
+		headerIcon: {
+			alignSelf: 'flex-start',
+		},
 
-	// ----Modal Wrapper----
+		// ----Modal Wrapper----
 
-	modalWrap: {
-		flex: 1,
-		justifyContent: 'flex-end',
-	},
-	modalContent: {
-		height: '95%',
-		width: '100%',
-		borderTopLeftRadius: 30,
-		borderTopRightRadius: 30,
-		overflow: 'hidden',
-		borderTopWidth: 1,
-		borderLeftWidth: 0.5,
-		borderRightWidth: 0.5,
-		borderColor: colors.neutral700,
-	},
-	modalHandle: {
-		width: 40,
-		height: 5,
-		backgroundColor: colors.neutral600,
-		borderRadius: 5,
-		alignSelf: 'center',
-		marginTop: 12,
-		marginBottom: 10,
-	},
+		modalWrap: {
+			flex: 1,
+			justifyContent: 'flex-end',
+		},
+		modalContent: {
+			height: '95%',
+			width: '100%',
+			borderTopLeftRadius: 30,
+			borderTopRightRadius: 30,
+			overflow: 'hidden',
+			borderTopWidth: 1,
+			borderLeftWidth: 0.5,
+			borderRightWidth: 0.5,
+			borderColor: colors.neutral700,
+		},
+		modalHandle: {
+			width: 40,
+			height: 5,
+			backgroundColor: colors.neutral600,
+			borderRadius: 5,
+			alignSelf: 'center',
+			marginTop: 12,
+			marginBottom: 10,
+		},
 
-	// ----Welcome----
+		// ----Welcome----
 
-	welcomeContainer: {
-		flex: 1,
-		justifyContent: 'space-between',
-	},
-	welcomeButton: {
-		alignSelf: 'flex-end',
-		marginRight: 20,
-	},
-	welcomeImage: {
-		width: '100%',
-		height: 450,
-		alignSelf: 'center',
-		marginTop: 30,
-	},
-	welcomeFooter: {
-		alignItems: 'center',
-		paddingTop: 30,
-		paddingBottom: 72,
-		gap: 20,
-	},
-	welcomeBtnContainer: {
-		width: '100%',
-		paddingHorizontal: 10,
-	},
+		welcomeContainer: {
+			flex: 1,
+			justifyContent: 'space-between',
+		},
+		welcomeButton: {
+			alignSelf: 'flex-end',
+			marginRight: 20,
+		},
+		welcomeImage: {
+			width: '100%',
+			height: 450,
+			alignSelf: 'center',
+			marginTop: 30,
+		},
+		welcomeFooter: {
+			alignItems: 'center',
+			paddingTop: 30,
+			paddingBottom: 72,
+			gap: 20,
+		},
+		welcomeBtnContainer: {
+			width: '100%',
+			paddingHorizontal: 10,
+		},
 
-	// ----Auth----
+		// ----Auth----
 
-	authContainer: {
-		flex: 1,
-		gap: 30,
-		paddingRight: 10,
-		paddingLeft: 10,
-	},
-	authForm: {
-		gap: 24,
-	},
-	authFooter: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 5,
-	},
+		authContainer: {
+			flex: 1,
+			gap: 30,
+			paddingRight: 10,
+			paddingLeft: 10,
+		},
+		authForm: {
+			gap: 24,
+		},
+		authFooter: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			gap: 5,
+		},
 
-	// ----HomePage----
+		// ----HomePage----
 
-	header: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 15,
-	},
-	avatar: {
-		overflow: 'hidden',
-		width: 38,
-		height: 38,
-		borderRadius: 50,
-		borderColor: colors.neutral500,
-		borderWidth: 1,
-	},
-	actionIcon: {
-		padding: 8,
-		borderRadius: 50,
-		borderColor: colors.neutral500,
-		borderWidth: 1,
-	},
-	scrollViewStyle: {
-		marginTop: 10,
-		paddingBottom: 60,
-		gap: 15,
-	},
-	addButton: {
-		zIndex: 100,
-		height: 55,
-		width: 55,
-		borderRadius: 12,
-		borderWidth: 2,
-		borderColor: colors.primaryLight,
-		backgroundColor: colors.gradientMid,
-		alignItems: 'center',
-		justifyContent: 'center',
-		position: 'absolute',
-		bottom: 32,
-		right: 12,
-	},
+		header: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			marginBottom: 15,
+		},
+		avatar: {
+			overflow: 'hidden',
+			width: 38,
+			height: 38,
+			borderRadius: 50,
+			borderColor: isDark ? colors.neutral500 : colors.neutral350,
+			borderWidth: 1,
+		},
+		actionIcon: {
+			padding: 8,
+			borderRadius: 50,
+			borderColor: isDark ? colors.neutral500 : colors.neutral350,
+			borderWidth: 1,
+		},
+		scrollViewStyle: {
+			marginTop: 10,
+			paddingBottom: 60,
+			gap: 15,
+		},
+		addButton: {
+			zIndex: 100,
+			height: 55,
+			width: 55,
+			borderRadius: 12,
+			borderWidth: 2,
+			borderColor: colors.primaryLight,
+			backgroundColor: colors.gradientMid,
+			alignItems: 'center',
+			justifyContent: 'center',
+			position: 'absolute',
+			bottom: 32,
+			right: 12,
+		},
 
-	// ----Card----
+		// ----Card----
 
-	bgImageCard: {
-		height: 240,
-		width: '100%',
-	},
-	containerCard: {
-		padding: 20,
-		paddingHorizontal: 23,
-		height: '87%',
-		justifyContent: 'space-between',
-	},
-	totalBalanceCard: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 5,
-	},
-	statsCard: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-	},
-	incomeExpenseCard: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 7,
-	},
-	statsIconCard: {
-		backgroundColor: colors.neutral350,
-		padding: 5,
-		borderRadius: 50,
-	},
+		bgImageCard: {
+			height: 240,
+			width: '100%',
+		},
+		containerCard: {
+			padding: 20,
+			paddingHorizontal: 23,
+			height: '87%',
+			justifyContent: 'space-between',
+		},
+		totalBalanceCard: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			marginBottom: 5,
+		},
+		statsCard: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+		},
+		incomeExpenseCard: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			gap: 7,
+		},
+		statsIconCard: {
+			backgroundColor: colors.neutral350,
+			padding: 5,
+			borderRadius: 50,
+		},
 
-	// ----Transaction List----
+		// ----Transaction List----
 
-	transRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		gap: 12,
-		paddingBottom: 12,
-		paddingHorizontal: 6,
-		borderBottomWidth: 0.6,
-		borderColor: colors.neutral500,
-	},
-	transIcon: {
-		height: 44,
-		aspectRatio: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 12,
-		borderCurve: 'continuous',
-	},
-	transCategoryDes: {
-		flex: 1,
-		gap: 3,
-	},
-	transAmountDate: {
-		alignItems: 'flex-end',
-		gap: 3,
-	},
-	transWalletItem: {
-		width: '100%',
-		paddingVertical: 8,
-		borderRadius: 12,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-		backgroundColor: colors.gradientMid,
-	},
-	transWalletScrollBar: {
-		height: 4,
-		width: 60,
-		backgroundColor: colors.neutral800,
-		borderRadius: 2,
-		alignSelf: 'center',
-		marginTop: 10,
-		overflow: 'hidden',
-	},
-	transCatContainer: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		gap: 8,
-	},
-	transCatItem: {
-		width: '23%',
-		height: 90,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	transCatIcon: {
-		padding: 7,
-		borderRadius: 20,
-		borderWidth: 1,
-		borderColor: colors.neutral400,
-	},
-	transCatExpandButton: {
-		borderWidth: 1,
-		borderRadius: 12,
-		borderColor: colors.neutral500,
-		backgroundColor: colors.gradientMid,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 6,
-		paddingVertical: 4,
-	},
+		transRow: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			gap: 12,
+			paddingBottom: 12,
+			paddingHorizontal: 6,
+			borderBottomWidth: 0.6,
+			borderColor: isDark ? colors.neutral500 : colors.neutral100,
+		},
+		transIcon: {
+			height: 44,
+			aspectRatio: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderRadius: 12,
+			borderCurve: 'continuous',
+		},
+		transCategoryDes: {
+			flex: 1,
+			gap: 3,
+		},
+		transAmountDate: {
+			alignItems: 'flex-end',
+			gap: 3,
+		},
+		transWalletItem: {
+			width: '100%',
+			paddingVertical: 8,
+			borderRadius: 12,
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+			backgroundColor: colors.gradientMid,
+		},
+		transWalletScrollBar: {
+			height: 4,
+			width: 60,
+			backgroundColor: colors.neutral800,
+			borderRadius: 2,
+			alignSelf: 'center',
+			marginTop: 10,
+			overflow: 'hidden',
+		},
+		transCatContainer: {
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+			gap: 8,
+		},
+		transCatItem: {
+			width: '23%',
+			height: 90,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		transCatIcon: {
+			padding: 7,
+			borderRadius: 20,
+			borderWidth: 1,
+			borderColor: colors.neutral400,
+		},
+		transCatExpandButton: {
+			borderWidth: 1,
+			borderRadius: 12,
+			borderColor: colors.neutral500,
+			backgroundColor: colors.gradientMid,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			gap: 6,
+			paddingVertical: 4,
+		},
 
-	// ----Statistics----
+		// ----Statistics----
 
-	statScrollContent: {
-		paddingTop: 20,
-		paddingBottom: 30,
-	},
-	statSegmentWrap: {
-		flexDirection: 'row',
-		height: 54,
-		borderRadius: 15,
-		padding: 6,
-		backgroundColor: colors.gradientMid,
-	},
-	statSegmentBtn: {
-		flex: 1,
-		justifyContent: 'center',
-	},
-	statSegmentActive: {
-		flex: 1,
-		backgroundColor: colors.gradientStart,
-		borderRadius: 12,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	statDateWrap: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-	},
-	statPieInner: {
-		minHeight: 200,
-		alignItems: 'center',
-		paddingHorizontal: 6,
-	},
-	statPieContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 15,
-		width: '100%',
-	},
-	statPieLegend: {
-		justifyContent: 'center',
-		gap: 12,
-	},
-	statPieLegendItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 6,
-	},
-	statPieLegendDot: {
-		width: 8,
-		height: 8,
-		borderRadius: 4,
-	},
-	noDataContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		minHeight: 100,
-	},
-	statCategoryCard: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		paddingHorizontal: 12,
-		paddingVertical: 6,
-	},
-	statCategoryInfo: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 12,
-	},
-	statIconWrapper: {
-		width: 40,
-		height: 40,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 10,
-	},
+		statScrollContent: {
+			paddingTop: 20,
+			paddingBottom: 30,
+		},
+		statSegmentWrap: {
+			flexDirection: 'row',
+			height: 54,
+			borderRadius: 15,
+			padding: 6,
+			backgroundColor: colors.gradientMid,
+		},
+		statSegmentBtn: {
+			flex: 1,
+			justifyContent: 'center',
+		},
+		statSegmentActive: {
+			flex: 1,
+			backgroundColor: colors.gradientStart,
+			borderRadius: 12,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		statDateWrap: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+		},
+		statPieInner: {
+			minHeight: 200,
+			alignItems: 'center',
+			paddingHorizontal: 6,
+		},
+		statPieContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			gap: 15,
+			width: '100%',
+		},
+		statPieLegend: {
+			justifyContent: 'center',
+			gap: 12,
+		},
+		statPieLegendItem: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			gap: 6,
+		},
+		statPieLegendDot: {
+			width: 8,
+			height: 8,
+			borderRadius: 4,
+		},
+		noDataContainer: {
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+			minHeight: 100,
+		},
+		statCategoryCard: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			paddingHorizontal: 12,
+			paddingVertical: 6,
+		},
+		statCategoryInfo: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			gap: 12,
+		},
+		statIconWrapper: {
+			width: 40,
+			height: 40,
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderRadius: 10,
+		},
 
-	// ----Wallet----
+		// ----Wallet----
 
-	walletContainer: {
-		flex: 1,
-		justifyContent: 'space-between',
-	},
-	walletBalance: {
-		height: 160,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	walletBlock: {
-		flex: 1,
-		borderTopRightRadius: 30,
-		borderTopLeftRadius: 30,
-		paddingHorizontal: 10,
-		paddingTop: 25,
-		borderTopWidth: 2,
-		borderTopColor: colors.gradientMid,
-	},
-	walletFlexRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		paddingHorizontal: 10,
-		marginBottom: 25,
-	},
-	walletItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginBottom: 17,
-		padding: 12,
-		borderRadius: 17,
-		overflow: 'hidden',
-		borderWidth: 0.7,
-		borderColor: colors.neutral500,
-	},
-	walletImage: {
-		height: 45,
-		width: 45,
-		overflow: 'hidden',
-	},
-	walletName: {
-		flex: 1,
-		gap: 2,
-		marginLeft: 10,
-	},
+		walletContainer: {
+			flex: 1,
+			justifyContent: 'space-between',
+		},
+		walletBalance: {
+			height: 160,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		walletBlock: {
+			flex: 1,
+			borderTopRightRadius: 30,
+			borderTopLeftRadius: 30,
+			paddingHorizontal: 10,
+			paddingTop: 25,
+			borderTopWidth: 2,
+			borderTopColor: colors.gradientMid,
+		},
+		walletFlexRow: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			paddingHorizontal: 10,
+			marginBottom: 25,
+		},
+		walletItem: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginBottom: 17,
+			padding: 12,
+			borderRadius: 17,
+			overflow: 'hidden',
+			borderWidth: 0.7,
+			borderColor: colors.neutral500,
+		},
+		walletImage: {
+			height: 45,
+			width: 45,
+			overflow: 'hidden',
+		},
+		walletName: {
+			flex: 1,
+			gap: 2,
+			marginLeft: 10,
+		},
 
-	// ----Profile----
+		// ----Profile----
 
-	profileInfo: {
-		marginTop: 30,
-		alignItems: 'center',
-		gap: 15,
-	},
-	profileAvatar: {
-		height: 135,
-		width: 135,
-		borderRadius: 200,
-		borderWidth: 1.5,
-		borderColor: colors.neutral500,
-	},
-	profileNameContainer: {
-		gap: 4,
-		alignItems: 'center',
-		marginTop: 5,
-		marginBottom: 40,
-	},
-	profileOptions: {
-		borderRadius: 20,
-		paddingHorizontal: 12,
-		paddingVertical: 2,
-		backgroundColor: colors.gradientMid,
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-	},
-	profileOptionsItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 15,
-		paddingVertical: 12,
-		paddingHorizontal: 6,
-	},
-	profileOptionsIcon: {
-		height: 35,
-		width: 35,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 12,
-	},
-	profileOptionsSeparator: {
-		height: 0.5,
-		backgroundColor: colors.neutral500,
-		marginHorizontal: 5,
-	},
+		profileInfo: {
+			marginTop: 30,
+			alignItems: 'center',
+			gap: 15,
+		},
+		profileAvatar: {
+			height: 135,
+			width: 135,
+			borderRadius: 200,
+			borderWidth: 1.5,
+			borderColor: colors.neutral500,
+		},
+		profileNameContainer: {
+			gap: 4,
+			alignItems: 'center',
+			marginTop: 5,
+			marginBottom: 40,
+		},
+		profileOptions: {
+			borderRadius: 20,
+			paddingHorizontal: 12,
+			paddingVertical: 2,
+			backgroundColor: colors.gradientMid,
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+		},
+		profileOptionsItem: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			gap: 15,
+			paddingVertical: 12,
+			paddingHorizontal: 6,
+		},
+		profileOptionsIcon: {
+			height: 35,
+			width: 35,
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderRadius: 12,
+		},
+		profileOptionsSeparator: {
+			height: 0.5,
+			backgroundColor: colors.neutral500,
+			marginHorizontal: 5,
+		},
 
-	// ----Modal----
+		// ----Modal----
 
-	modalForm: {
-		gap: 20,
-		marginTop: 30,
-		marginBottom: 30,
-	},
-	modalBtnWrap: {
-		flexDirection: 'row',
-		gap: 6,
-		paddingHorizontal: 5,
-	},
-	modalDropdownShadowHolder: {
-		paddingHorizontal: 8,
-		paddingVertical: 5,
-	},
-	modalDropdownContainer: {
-		height: 54,
-		borderWidth: 1,
-		paddingHorizontal: 15,
-		borderCurve: 'continuous',
-		backgroundColor: '#292e3a',
-		borderRadius: 17,
-		borderColor: '#1B1B1B',
-	},
-	modalAddCategory: {
-		flexDirection: 'row',
-		gap: 15,
-		alignItems: 'center',
-		paddingLeft: 6,
-	},
-	modalInputContainer: {
-		alignSelf: 'stretch',
-		overflow: 'hidden',
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-	},
-	modalInputInner: {
-		flexDirection: 'row',
-		height: 54,
-		alignItems: 'center',
-		gap: 10,
-		borderRadius: 12,
-	},
-	modalInput: {
-		width: '100%',
-		height: 54,
-		justifyContent: 'center',
-		paddingHorizontal: 15,
-	},
-	modalFooter: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-		paddingHorizontal: 10,
-		paddingTop: 15,
-		borderTopColor: colors.neutral700,
-		borderTopWidth: 1,
-		marginBottom: 60,
-	},
-	modalAvatarContainer: {
-		position: 'relative',
-		alignSelf: 'center',
-	},
-	modalAvatar: {
-		alignSelf: 'center',
-		backgroundColor: colors.neutral300,
-		height: 135,
-		width: 135,
-		borderRadius: 200,
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-	},
-	modalEditIcon: {
-		position: 'absolute',
-		bottom: 5,
-		right: 7,
-		borderRadius: 100,
-		backgroundColor: colors.neutral300,
-		shadowColor: colors.black,
-		shadowOffset: { width: 0, height: 0 },
-		shadowOpacity: 0.25,
-		shadowRadius: 10,
-		elevation: 4,
-		padding: 7,
-	},
-	calcModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	calcContainer: {
-		borderTopLeftRadius: 30,
-		borderTopRightRadius: 30,
-		paddingBottom: 30,
-		paddingHorizontal: 10,
-	},
-	calcHandle: {
-		width: 40,
-		height: 5,
-		backgroundColor: 'rgba(255, 255, 255, 0.2)',
-		borderRadius: 10,
-		alignSelf: 'center',
-		marginVertical: 15,
-	},
-	calcDisplayWrapper: {
-		marginHorizontal: 20,
-		marginBottom: 40,
-		marginTop: 40,
-	},
-	calcDisplayInner: {
-		alignItems: 'center',
-		height: 60,
-		justifyContent: 'center',
-		overflow: 'hidden',
-	},
-	calcButtonOperators: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 34,
-		marginBottom: 20,
-	},
-	calcGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		paddingHorizontal: 10,
-		justifyContent: 'space-between',
-		width: '100%',
-	},
-	calcButtonWrapper: {
-		width: '23%',
-		marginVertical: 5,
-	},
-	calcButtonDouble: {
-		width: '49%',
-	},
+		modalForm: {
+			gap: 20,
+			marginTop: 30,
+			marginBottom: 30,
+		},
+		modalBtnWrap: {
+			flexDirection: 'row',
+			gap: 6,
+			paddingHorizontal: 5,
+		},
+		modalDropdownShadowHolder: {
+			paddingHorizontal: 8,
+			paddingVertical: 5,
+		},
+		modalDropdownContainer: {
+			height: 54,
+			borderWidth: 1,
+			paddingHorizontal: 15,
+			borderCurve: 'continuous',
+			backgroundColor: '#292e3a',
+			borderRadius: 17,
+			borderColor: '#1B1B1B',
+		},
+		modalAddCategory: {
+			flexDirection: 'row',
+			gap: 15,
+			alignItems: 'center',
+			paddingLeft: 6,
+		},
+		modalInputContainer: {
+			alignSelf: 'stretch',
+			overflow: 'hidden',
+			borderRadius: 12,
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+		},
+		modalInputInner: {
+			flexDirection: 'row',
+			height: 54,
+			alignItems: 'center',
+			gap: 10,
+			borderRadius: 12,
+		},
+		modalInput: {
+			width: '100%',
+			height: 54,
+			justifyContent: 'center',
+			paddingHorizontal: 15,
+		},
+		modalFooter: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			flexDirection: 'row',
+			paddingHorizontal: 10,
+			paddingTop: 15,
+			borderTopColor: isDark ? colors.neutral700 : colors.neutral500,
+			borderTopWidth: 1,
+			marginBottom: 60,
+		},
+		modalAvatarContainer: {
+			position: 'relative',
+			alignSelf: 'center',
+		},
+		modalAvatar: {
+			alignSelf: 'center',
+			backgroundColor: isDark ? colors.neutral300 : colors.neutral500,
+			height: 135,
+			width: 135,
+			borderRadius: 200,
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+		},
+		modalEditIcon: {
+			position: 'absolute',
+			bottom: 5,
+			right: 7,
+			borderRadius: 100,
+			backgroundColor: isDark ? colors.neutral300 : colors.neutral600,
+			shadowColor: colors.neutral900,
+			shadowOffset: { width: 0, height: 0 },
+			shadowOpacity: 0.25,
+			shadowRadius: 10,
+			elevation: 4,
+			padding: 7,
+		},
+		calcModal: {
+			justifyContent: 'flex-end',
+			margin: 0,
+		},
+		calcContainer: {
+			borderTopLeftRadius: 30,
+			borderTopRightRadius: 30,
+			paddingBottom: 30,
+			paddingHorizontal: 10,
+		},
+		calcHandle: {
+			width: 40,
+			height: 5,
+			backgroundColor: 'rgba(255, 255, 255, 0.2)',
+			borderRadius: 10,
+			alignSelf: 'center',
+			marginVertical: 15,
+		},
+		calcDisplayWrapper: {
+			marginHorizontal: 20,
+			marginBottom: 40,
+			marginTop: 40,
+		},
+		calcDisplayInner: {
+			alignItems: 'center',
+			height: 60,
+			justifyContent: 'center',
+			overflow: 'hidden',
+		},
+		calcButtonOperators: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			gap: 34,
+			marginBottom: 20,
+		},
+		calcGrid: {
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+			paddingHorizontal: 10,
+			justifyContent: 'space-between',
+			width: '100%',
+		},
+		calcButtonWrapper: {
+			width: '23%',
+			marginVertical: 5,
+		},
+		calcButtonDouble: {
+			width: '49%',
+		},
 
-	// ----Upload Image----
+		// ----Upload Image----
 
-	uploadContainer: {
-		paddingHorizontal: 5,
-		height: 54,
-		backgroundColor: colors.gradientMid,
-		borderRadius: 15,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 10,
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-		borderStyle: 'dashed',
-	},
-	uploadImage: {
-		height: 150,
-		width: 150,
-		borderRadius: 15,
-		borderCurve: 'continuous',
-		overflow: 'hidden',
-	},
-	uploadDeleteIcon: {
-		width: 24,
-		height: 24,
-		borderRadius: 15,
-		position: 'absolute',
-		top: 6,
-		right: 6,
-		shadowColor: colors.black,
-		shadowOffset: { width: 0, height: 5 },
-		shadowOpacity: 1,
-		shadowRadius: 10,
-	},
+		uploadContainer: {
+			paddingHorizontal: 5,
+			height: 54,
+			backgroundColor: colors.gradientMid,
+			borderRadius: 15,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			gap: 10,
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+			borderStyle: 'dashed',
+		},
+		uploadImage: {
+			height: 150,
+			width: 150,
+			borderRadius: 15,
+			borderCurve: 'continuous',
+			overflow: 'hidden',
+		},
+		uploadDeleteIcon: {
+			width: 24,
+			height: 24,
+			borderRadius: 15,
+			position: 'absolute',
+			top: 6,
+			right: 6,
+			shadowColor: colors.neutral900,
+			shadowOffset: { width: 0, height: 5 },
+			shadowOpacity: 1,
+			shadowRadius: 10,
+		},
 
-	// ----Settings----
+		// ----Settings----
 
-	settingsItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		paddingVertical: 15,
-		borderBottomWidth: 0.5,
-		borderBottomColor: colors.neutral500,
-	},
-	settingsInfo: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 10,
-	},
-	settingsDaysGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		gap: 8,
-		justifyContent: 'space-between',
-	},
-	settingsDayButton: {
-		width: 45,
-		height: 45,
-		backgroundColor: colors.gradientMid,
-		borderRadius: 12,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-	},
+		settingsItem: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			paddingVertical: 15,
+			borderBottomWidth: 0.5,
+			borderBottomColor: colors.neutral500,
+		},
+		settingsInfo: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			gap: 10,
+		},
+		settingsDaysGrid: {
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+			gap: 8,
+			justifyContent: 'space-between',
+		},
+		settingsDayButton: {
+			width: 45,
+			height: 45,
+			backgroundColor: colors.gradientMid,
+			borderRadius: 12,
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+		},
 
-	// ----Input----
+		// ----Input----
 
-	inputBaseBackground: {
-		alignSelf: 'stretch',
-		overflow: 'hidden',
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-		borderRadius: 12,
-		height: 54,
-	},
-	inputContainer: {
-		flexDirection: 'row',
-		height: 54,
-		alignItems: 'center',
-		gap: 10,
-		borderRadius: 12,
-	},
-	inputContent: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		paddingHorizontal: 15,
-		gap: 10,
-	},
-	input: {
-		flex: 1,
-		color: colors.white,
-		fontSize: 14,
-		paddingVertical: 0,
-	},
+		inputBaseBackground: {
+			alignSelf: 'stretch',
+			overflow: 'hidden',
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+			borderRadius: 12,
+			height: 54,
+		},
+		inputContainer: {
+			flexDirection: 'row',
+			height: 54,
+			alignItems: 'center',
+			gap: 10,
+			borderRadius: 12,
+		},
+		inputContent: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+			paddingHorizontal: 15,
+			gap: 10,
+		},
+		input: {
+			flex: 1,
+			color: colors.neutral100,
+			fontSize: 14,
+			paddingVertical: 0,
+		},
 
-	// ----Button----
+		// ----Button----
 
-	button: {
-		height: 52,
-		width: '100%',
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 0.8,
-		borderColor: colors.neutral500,
-		borderRadius: 17,
-	},
-	buttonBack: {
-		width: 45,
-		height: 45,
-		borderRadius: 17,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 0.8,
-		borderColor: colors.neutral500,
-		zIndex: 100,
-	},
+		button: {
+			height: 52,
+			width: '100%',
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderWidth: 0.8,
+			borderColor: colors.neutral500,
+			borderRadius: 12,
+		},
+		buttonBack: {
+			width: 45,
+			height: 45,
+			borderRadius: 12,
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderWidth: 0.8,
+			borderColor: colors.neutral500,
+			zIndex: 100,
+		},
 
-	// ----Tabs----
-	tabBar: {
-		flexDirection: 'row',
-		width: '100%',
-		justifyContent: 'space-around',
-		alignItems: 'center',
-		backgroundColor: colors.gradientEnd,
-		paddingBottom: Platform.OS === 'ios' ? 20 : 60,
-		paddingTop: 15,
-	},
-	tabItem: {
-		width: 50,
-		height: 50,
-		borderRadius: 12,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	tabActiveItem: {
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-	},
-	tabButton: {
-		height: 50,
-		width: '100%',
-		paddingHorizontal: 16,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 0.8,
-		borderRadius: 12,
-	},
+		// ----Tabs----
+		tabBar: {
+			flexDirection: 'row',
+			width: '100%',
+			justifyContent: 'space-around',
+			alignItems: 'center',
+			backgroundColor: colors.gradientEnd,
+			paddingBottom: Platform.OS === 'ios' ? 20 : 60,
+			paddingTop: 15,
+		},
+		tabItem: {
+			width: 50,
+			height: 50,
+			borderRadius: 12,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		tabActiveItem: {
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+		},
+		tabButton: {
+			height: 50,
+			width: '100%',
+			paddingHorizontal: 16,
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderWidth: 0.8,
+			borderRadius: 12,
+		},
 
-	// ----Manage Categories----
+		// ----Manage Categories----
 
-	rowContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		paddingVertical: 14,
-		paddingHorizontal: 6,
-		borderBottomWidth: 1,
-		borderBottomColor: colors.neutral500,
-	},
-	rowNameContainer: {
-		flex: 1,
-	},
+		rowContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			paddingVertical: 14,
+			paddingHorizontal: 6,
+			borderBottomWidth: 1,
+			borderBottomColor: colors.neutral500,
+		},
+		rowNameContainer: {
+			flex: 1,
+		},
 
-	rowActions: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 4,
-	},
-	rowActionBtn: {
-		paddingHorizontal: 8,
-		paddingVertical: 4,
-	},
-	rowInput: {
-		color: colors.white,
-		fontSize: 15,
-		borderBottomWidth: 1,
-		borderBottomColor: colors.primaryLight || colors.neutral100,
-		paddingVertical: 2,
-	},
+		rowActions: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			gap: 4,
+		},
+		rowActionBtn: {
+			paddingHorizontal: 8,
+			paddingVertical: 4,
+		},
+		rowInput: {
+			color: colors.neutral100,
+			fontSize: 15,
+			borderBottomWidth: 1,
+			borderBottomColor: colors.primaryLight || colors.neutral100,
+			paddingVertical: 2,
+		},
 
-	// ----Confirm Modal----
+		// ----Confirm Modal----
 
-	confOverlay: {
-		flex: 1,
-		backgroundColor: 'rgba(0, 0, 0, 0.9)',
-		justifyContent: 'center',
-		alignItems: 'center',
-		padding: 12,
-	},
-	confModalBox: {
-		width: '100%',
-		maxWidth: 360,
-		borderRadius: 17,
-		paddingVertical: 24,
-		paddingHorizontal: 16,
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-	},
+		confOverlay: {
+			flex: 1,
+			backgroundColor: isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(78, 78, 78, 0.9)',
+			justifyContent: 'center',
+			alignItems: 'center',
+			padding: 12,
+		},
+		confModalBox: {
+			width: '100%',
+			maxWidth: 360,
+			borderRadius: 17,
+			paddingVertical: 24,
+			paddingHorizontal: 16,
+			borderWidth: 1,
+			borderColor: colors.neutral500,
+		},
 
-	// ----Privacy----
+		// ----Privacy----
 
-	title: {
-		fontSize: 24,
-		fontWeight: '700',
-		color: colors.neutral100,
-		marginBottom: 6,
-	},
-	updateDate: {
-		fontSize: 13,
-		color: colors.neutral400,
-		marginBottom: 24,
-	},
-	section: {
-		marginBottom: 20,
-	},
-	sectionTitle: {
-		fontSize: 16,
-		fontWeight: '600',
-		color: colors.neutral100,
-		marginBottom: 8,
-	},
-	paragraph: {
-		fontSize: 14,
-		lineHeight: 22,
-		color: colors.neutral300,
-	},
-	bulletPoint: {
-		fontSize: 14,
-		lineHeight: 22,
-		color: colors.neutral300,
-		marginLeft: 8,
-		marginTop: 4,
-	},
-	bold: {
-		fontWeight: '600',
-		color: colors.neutral100,
-	},
-	actionsContainer: {
-		marginTop: 16,
-		gap: 12,
-		paddingBottom: 24,
-	},
+		title: {
+			fontSize: 24,
+			fontWeight: '700',
+			color: colors.neutral100,
+			marginBottom: 6,
+		},
+		updateDate: {
+			fontSize: 13,
+			color: colors.neutral400,
+			marginBottom: 24,
+		},
+		section: {
+			marginBottom: 20,
+		},
+		sectionTitle: {
+			fontSize: 16,
+			fontWeight: '600',
+			color: colors.neutral100,
+			marginBottom: 8,
+		},
+		paragraph: {
+			fontSize: 14,
+			lineHeight: 22,
+			color: colors.neutral300,
+		},
+		bulletPoint: {
+			fontSize: 14,
+			lineHeight: 22,
+			color: colors.neutral300,
+			marginLeft: 8,
+			marginTop: 4,
+		},
+		bold: {
+			fontWeight: '600',
+			color: colors.neutral100,
+		},
+		actionsContainer: {
+			marginTop: 16,
+			gap: 12,
+			paddingBottom: 24,
+		},
 
-	// ----Calendar Modal----
+		// ----Calendar Modal----
 
-	calendarOverlay: {
-		flex: 1,
-		backgroundColor: 'rgba(0, 0, 0, 0.9)',
-		justifyContent: 'flex-end',
-		alignItems: 'center',
-		padding: 12,
-		paddingBottom: 60,
-	},
-	calendarHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 12,
-	},
-	calendarWeekDays: {
-		flexDirection: 'row',
-		marginBottom: 10,
-	},
-	calendarDayCell: {
-		width: `${100 / 7}%`,
-		height: 44,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	calendarDaysGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-	},
-	calendarSelectedCell: {
-		backgroundColor: colors.primaryLight,
-		borderRadius: 12,
-	},
-	calendarTodayCell: {
-		borderWidth: 1,
-		borderColor: colors.primaryLight,
-		borderRadius: 12,
-	},
-});
+		calendarOverlay: {
+			flex: 1,
+			backgroundColor: isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(78, 78, 78, 0.9)',
+			justifyContent: 'flex-end',
+			alignItems: 'center',
+			padding: 12,
+			paddingBottom: 60,
+		},
+		calendarHeader: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			marginBottom: 12,
+		},
+		calendarWeekDays: {
+			flexDirection: 'row',
+			marginBottom: 10,
+		},
+		calendarDayCell: {
+			width: `${100 / 7}%`,
+			height: 44,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		calendarDaysGrid: {
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+		},
+		calendarSelectedCell: {
+			backgroundColor: colors.primaryLight,
+			borderRadius: 12,
+		},
+		calendarTodayCell: {
+			borderWidth: 1,
+			borderColor: colors.primaryLight,
+			borderRadius: 12,
+		},
+	});

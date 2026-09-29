@@ -2,8 +2,8 @@ import BackButton from '@/components/BackButton';
 import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { showErrorToast } from '@/utils/showToast';
 import { useRouter } from 'expo-router';
@@ -19,6 +19,9 @@ const currencies = [
 const CurrencyModal = () => {
 	const { user, updateUser } = useAuth();
 	const router = useRouter();
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const handleCurrencyChange = async (currencyValue: string) => {
 		if (!user?.uid) return;
@@ -56,7 +59,7 @@ const CurrencyModal = () => {
 											onPress={() => handleCurrencyChange(item.value)}
 										>
 											<View style={globalStyles.settingsInfo}>
-												<Typo size={18} fontWeight="600">
+												<Typo size={18} fontWeight="600" color={colors.neutral100}>
 													{item.symbol} - {item.label}
 												</Typo>
 											</View>

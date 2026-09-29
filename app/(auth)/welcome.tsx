@@ -1,14 +1,17 @@
 import Button from '@/components/Button';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 import { TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 const Welcome = () => {
 	const router = useRouter();
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	return (
 		<ScreenWrapper>
@@ -29,10 +32,10 @@ const Welcome = () => {
 
 				<View style={globalStyles.welcomeFooter}>
 					<View style={{ alignItems: 'center' }}>
-						<Typo size={26} fontWeight={'800'}>
+						<Typo size={26} fontWeight={'800'} color={colors.neutral300}>
 							Фінанси
 						</Typo>
-						<Typo size={26} fontWeight={'800'}>
+						<Typo size={26} fontWeight={'800'} color={colors.neutral300}>
 							під контролем
 						</Typo>
 					</View>

@@ -1,6 +1,6 @@
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
 import { categoryGroups, TransactionType } from '@/constants/types';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { getCurrencySymbol } from '@/utils/common';
 import { FlashList } from '@shopify/flash-list';
@@ -38,6 +38,8 @@ const TransactionList = ({
 	wallets,
 }: TransactionListType) => {
 	const router = useRouter();
+
+	const { isDark, colors } = useTheme();
 
 	const finalData = filterByMonth
 		? data.filter((item) => {
@@ -78,7 +80,11 @@ const TransactionList = ({
 			/>
 
 			{!loading && finalData.length === 0 && (
-				<Typo size={15} color={colors.neutral400} style={{ textAlign: 'center', marginTop: 15 }}>
+				<Typo
+					size={15}
+					color={isDark ? colors.neutral400 : colors.neutral350}
+					style={{ textAlign: 'center', marginTop: 15 }}
+				>
 					{emptyListMessage}
 				</Typo>
 			)}
@@ -95,6 +101,9 @@ const TransactionList = ({
 const TransactionItem = ({ item, index, handleClick, categories, wallets }: TransactionItemProps) => {
 	const { user } = useAuth();
 	const currencySymbol = getCurrencySymbol(user?.currency);
+
+	const { isDark, colors } = useTheme();
+	const globalStyles = getGlobalStyles(colors);
 
 	const getCategoryInfo = () => {
 		if (item?.type === 'income') {
@@ -157,11 +166,17 @@ const TransactionItem = ({ item, index, handleClick, categories, wallets }: Tran
 			<Pressable onPress={() => handleClick(item)}>
 				<View style={globalStyles.transRow}>
 					<View style={[globalStyles.transIcon, { backgroundColor: category.bgColor }]}>
-						{IconComponent && <IconComponent size={22} weight="fill" color={colors.white} />}
+						{IconComponent && (
+							<IconComponent
+								size={22}
+								weight="fill"
+								color={isDark ? colors.neutral100 : colors.neutral900}
+							/>
+						)}
 					</View>
 
 					<View style={globalStyles.transCategoryDes}>
-						<Typo size={16} fontWeight={'600'}>
+						<Typo size={16} fontWeight={'600'} color={colors.neutral100}>
 							{item?.type === 'income' || item?.type === 'transfer'
 								? category.label
 								: `${groupLabel} / ${category.label}`}

@@ -1,5 +1,5 @@
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import useFetchData from '@/hooks/useFetchData';
 import { getCurrencySymbol } from '@/utils/common';
@@ -23,6 +23,8 @@ type WalletType = {
 const HomeCard = () => {
 	const { user } = useAuth();
 	const currencySymbol = getCurrencySymbol(user?.currency);
+	const { isDark, colors } = useTheme();
+	const globalStyles = getGlobalStyles(colors);
 
 	const constraints = useMemo(() => {
 		if (!user?.uid) return [];
@@ -49,9 +51,12 @@ const HomeCard = () => {
 
 	const isInitialLoading = walletLoading && (!wallets || wallets.length === 0);
 
+	const cardBgDark = require('../assets/images/Card.png');
+	const cardBgLight = require('../assets/images/CardWhite.png');
+
 	return (
 		<ImageBackground
-			source={require('../assets/images/Card.png')}
+			source={isDark ? cardBgDark : cardBgLight}
 			resizeMode="stretch"
 			style={globalStyles.bgImageCard}
 		>
@@ -63,7 +68,7 @@ const HomeCard = () => {
 						</Typo>
 					</View>
 					<View style={{ minHeight: 40, justifyContent: 'center' }}>
-						<Typo size={30} fontWeight={'bold'} color={colors.white}>
+						<Typo size={30} fontWeight={'bold'} color={colors.neutral100}>
 							{currencySymbol} {isInitialLoading ? '----' : totals.balance.toFixed(2)}
 						</Typo>
 					</View>
@@ -74,7 +79,7 @@ const HomeCard = () => {
 					<View style={{ gap: 5 }}>
 						<View style={globalStyles.incomeExpenseCard}>
 							<View style={globalStyles.statsIconCard}>
-								<Icons.ArrowUp size={15} color={colors.black} weight="bold" />
+								<Icons.ArrowUp size={15} color={colors.neutral900} weight="bold" />
 							</View>
 							<Typo size={16} fontWeight={500} color={colors.neutral300}>
 								Дохід
@@ -91,7 +96,7 @@ const HomeCard = () => {
 					<View style={{ gap: 5 }}>
 						<View style={globalStyles.incomeExpenseCard}>
 							<View style={globalStyles.statsIconCard}>
-								<Icons.ArrowDown size={15} color={colors.black} weight="bold" />
+								<Icons.ArrowDown size={15} color={colors.neutral900} weight="bold" />
 							</View>
 							<Typo size={16} fontWeight={500} color={colors.neutral300}>
 								Витрати

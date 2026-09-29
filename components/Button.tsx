@@ -1,5 +1,6 @@
-import { globalStyles } from '@/constants/global';
-import { BUTTON_GRADIENT } from '@/constants/gradient';
+import { getGlobalStyles } from '@/constants/global';
+import { getGradients } from '@/constants/gradient';
+import { useTheme } from '@/context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { TouchableOpacity, TouchableOpacityProps, View, ViewStyle } from 'react-native';
@@ -13,6 +14,11 @@ interface CustomButtonProps extends TouchableOpacityProps {
 }
 
 const Button = ({ style, onPress, loading = false, children, ...props }: CustomButtonProps) => {
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors);
+	const gradients = getGradients(colors);
+	const buttonGradient = isDark ? gradients.BUTTON_GRADIENT : gradients.BUTTON_GRADIENT_WHITE;
+
 	if (loading) {
 		return (
 			<View style={[globalStyles.button, style, { backgroundColor: 'transparent' }]}>
@@ -27,14 +33,18 @@ const Button = ({ style, onPress, loading = false, children, ...props }: CustomB
 			activeOpacity={0.8}
 			style={[
 				{
-					borderRadius: 17,
-					overflow: 'hidden',
+					borderRadius: 12,
 				},
 				style,
 			]}
 			{...props}
 		>
-			<LinearGradient {...BUTTON_GRADIENT} style={globalStyles.button}>
+			<LinearGradient
+				colors={buttonGradient.colors}
+				start={buttonGradient.start}
+				end={buttonGradient.end}
+				style={globalStyles.button}
+			>
 				{children}
 			</LinearGradient>
 		</TouchableOpacity>

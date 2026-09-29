@@ -1,6 +1,6 @@
-import { globalStyles } from '@/constants/global';
-import { BUTTON_GRADIENT } from '@/constants/gradient';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { getGradients } from '@/constants/gradient';
+import { useTheme } from '@/context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TabNavigationState } from 'expo-router';
 import { NavigationHelpers, ParamListBase } from 'expo-router/build/react-navigation';
@@ -17,44 +17,53 @@ type BottomTabBarProps = {
 	descriptors: BottomTabDescriptorMap;
 	navigation: NavigationHelpers<ParamListBase, BottomTabNavigationEventMap>;
 	insets: EdgeInsets;
+	isDark?: boolean;
 };
 
-const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
-	const tabbarIcons: any = {
+const CustomTabs = ({ state, descriptors, navigation, isDark }: BottomTabBarProps) => {
+	const { colors, isDark: contextIsDark } = useTheme();
+	const activeIsDark = isDark ?? contextIsDark;
+	const globalStyles = getGlobalStyles(colors, activeIsDark);
+	const gradients = getGradients(colors);
+	// const buttonGradient = gradients.BUTTON_GRADIENT;
+	const routes = state?.routes || [];
+
+	const tabbarIcons: Record<string, (isFocused: boolean) => React.ReactNode> = {
 		index: (isFocused: boolean) => (
 			<Icons.House
 				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
-				color={isFocused ? colors.primaryLight : colors.neutral400}
+				color={isFocused ? colors?.primaryLight || '#2563eb' : colors?.neutral350 || '#a3a3a3'}
 			/>
 		),
 		statistics: (isFocused: boolean) => (
 			<Icons.ChartBar
 				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
-				color={isFocused ? colors.primaryLight : colors.neutral400}
+				color={isFocused ? colors?.primaryLight || '#2563eb' : colors?.neutral350 || '#a3a3a3'}
 			/>
 		),
 		wallet: (isFocused: boolean) => (
 			<Icons.Wallet
 				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
-				color={isFocused ? colors.primaryLight : colors.neutral400}
+				color={isFocused ? colors?.primaryLight || '#2563eb' : colors?.neutral350 || '#a3a3a3'}
 			/>
 		),
 		profile: (isFocused: boolean) => (
 			<Icons.User
 				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
-				color={isFocused ? colors.primaryLight : colors.neutral400}
+				color={isFocused ? colors?.primaryLight || '#2563eb' : colors?.neutral350 || '#a3a3a3'}
 			/>
 		),
 	};
 
+	const buttonGradient = isDark ? gradients.BUTTON_GRADIENT : gradients.BUTTON_GRADIENT_WHITE;
+
 	return (
 		<View style={[globalStyles.tabBar]}>
-			{state.routes.map((route, index) => {
-				const { options } = descriptors[route.key];
+			{routes.map((route, index) => {
 				const isFocused = state.index === index;
 
 				const onPress = () => {
@@ -70,7 +79,7 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 
 				return (
 					<View
-						key={route.name}
+						key={route.key}
 						style={{
 							justifyContent: 'center',
 							alignItems: 'center',
@@ -81,7 +90,12 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 								onPress={onPress}
 								style={[globalStyles.tabItem, globalStyles.tabActiveItem]}
 							>
-								<LinearGradient {...BUTTON_GRADIENT} style={globalStyles.tabButton}>
+								<LinearGradient
+									colors={buttonGradient.colors}
+									start={buttonGradient.start}
+									end={buttonGradient.end}
+									style={globalStyles.tabButton}
+								>
 									{tabbarIcons[route.name]?.(isFocused)}
 								</LinearGradient>
 							</TouchableOpacity>

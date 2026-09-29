@@ -6,8 +6,8 @@ import Loading from '@/components/Loading';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { auth } from '@/config/firebase';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { showErrorToast, showSuccessToast, showWarningToast } from '@/utils/showToast';
 import { useRouter } from 'expo-router';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
@@ -21,6 +21,9 @@ const Login = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [confirmVisible, setConfirmVisible] = useState(false);
 	const router = useRouter();
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const handleLogin = async () => {
 		if (!email.trim() || !password.trim()) {
@@ -81,10 +84,10 @@ const Login = () => {
 				<BackButton iconSize={28} />
 
 				<View style={{ gap: 5, marginTop: 20, marginLeft: 5 }}>
-					<Typo size={30} fontWeight={'800'}>
+					<Typo size={30} fontWeight={'800'} color={colors.neutral300}>
 						Хей,
 					</Typo>
-					<Typo size={30} fontWeight={'800'}>
+					<Typo size={30} fontWeight={'800'} color={colors.neutral300}>
 						Ласкаво просимо назад
 					</Typo>
 				</View>
@@ -109,7 +112,7 @@ const Login = () => {
 					/>
 
 					<Pressable onPress={handleForgotPassword} style={{ alignSelf: 'flex-end' }}>
-						<Typo size={14} color={colors.neutral50}>
+						<Typo size={14} color={colors.neutral100}>
 							Забули пароль?
 						</Typo>
 					</Pressable>

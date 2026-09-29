@@ -1,6 +1,6 @@
 import DefaultWalletImg from '@/assets/images/wallet.png';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { getCurrencySymbol } from '@/utils/common';
 import { BlurView } from 'expo-blur';
@@ -28,6 +28,9 @@ type WalletType = {
 const WalletItem = ({ item, index, router }: { item: WalletType; index: number; router: Router }) => {
 	const { user } = useAuth();
 	const currencySymbol = getCurrencySymbol(user?.currency);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const isExclusive = item?.isExcludedFromTotal || item?.isExclusive || item?.isExcluded;
 
@@ -58,8 +61,10 @@ const WalletItem = ({ item, index, router }: { item: WalletType; index: number; 
 						/>
 					</View>
 					<View style={globalStyles.walletName}>
-						<Typo size={16}>{item?.name}</Typo>
-						<Typo size={14} color={colors.neutral400}>
+						<Typo size={16} color={colors.neutral100}>
+							{item?.name}
+						</Typo>
+						<Typo size={14} color={colors.neutral300}>
 							{currencySymbol}
 							{item?.amount}
 						</Typo>

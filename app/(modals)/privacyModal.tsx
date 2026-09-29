@@ -5,8 +5,8 @@ import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { showErrorToast, showInfoToast, showSuccessToast } from '@/utils/showToast';
 import { deleteUser, getAuth } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDocs, query, where, writeBatch } from 'firebase/firestore';
@@ -75,12 +75,12 @@ const deleteUserDataAndAccount = async (): Promise<{ success: boolean; error?: s
 	}
 };
 
-const PrivacyModal: React.FC<PrivacyPolicyScreenProps> = ({
-	onBack,
-	supportEmail = 'artem.frontdeveloper@gmail.com',
-}) => {
+const PrivacyModal: React.FC<PrivacyPolicyScreenProps> = ({ supportEmail = 'artem.frontdeveloper@gmail.com' }) => {
 	const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const handleContactSupport = async () => {
 		const mailUrl = `mailto:${supportEmail}?subject=Запит щодо конфіденційності`;
@@ -108,6 +108,9 @@ const PrivacyModal: React.FC<PrivacyPolicyScreenProps> = ({
 			showSuccessToast("Ваш акаунт та всі пов'язані дані були успішно видалені");
 		}
 	};
+
+	const logoDark = require('../../assets/images/LogoDeveloperWhite.png');
+	const logoLight = require('../../assets/images/LogoDeveloperBlack.png');
 
 	return (
 		<ModalWrapper>
@@ -184,7 +187,7 @@ const PrivacyModal: React.FC<PrivacyPolicyScreenProps> = ({
 						<Image
 							style={{ width: 150, height: 'auto', paddingBottom: 72 }}
 							resizeMode="contain"
-							source={require('../../assets/images/LogoDeveloperWhite.png')}
+							source={isDark ? logoDark : logoLight}
 						/>
 					</View>
 				</ScrollView>

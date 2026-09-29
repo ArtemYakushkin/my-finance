@@ -3,8 +3,8 @@ import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import TransactionList from '@/components/TransactionList';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import useFetchData from '@/hooks/useFetchData';
 import { orderBy, where } from 'firebase/firestore';
@@ -31,6 +31,9 @@ const SearchModal = () => {
 	const [selectedType, setSelectedType] = useState<string | null>(null);
 	const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 	const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	// 1. Загружаем все транзакции пользователя без лимита по месяцу для полноценного поиска
 	const { data: allTransactions, loading: transactionsLoading } = useFetchData<any>(
@@ -110,7 +113,7 @@ const SearchModal = () => {
 									>
 										{isActive ? (
 											<View style={globalStyles.statSegmentActive}>
-												<Typo size={13} fontWeight={'500'} color={colors.neutral50}>
+												<Typo size={13} fontWeight={'500'} color={colors.neutral100}>
 													{t.label}
 												</Typo>
 											</View>
@@ -147,7 +150,7 @@ const SearchModal = () => {
 													<Typo
 														size={13}
 														fontWeight={'500'}
-														color={g.value ? colors.white : colors.neutral50}
+														color={g.value ? colors.neutral100 : colors.neutral100}
 													>
 														{g.label}
 													</Typo>

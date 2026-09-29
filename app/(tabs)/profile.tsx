@@ -4,8 +4,8 @@ import Loading from '@/components/Loading';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { auth } from '@/config/firebase';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { showErrorToast } from '@/utils/showToast';
 import { Image } from 'expo-image';
@@ -31,28 +31,31 @@ const Profile = () => {
 	const router = useRouter();
 	const [confirmVisible, setConfirmVisible] = useState(false);
 
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+
 	const accountOptions: accountOptionType[] = [
 		{
 			title: 'Налаштування',
-			icon: <Icons.GearSix size={21} color={colors.white} weight="fill" />,
+			icon: <Icons.GearSix size={21} color={isDark ? colors.neutral100 : colors.neutral900} weight="fill" />,
 			routeName: '/(modals)/settingsModal',
 			bgColor: colors.green,
 		},
 		{
 			title: 'Планування',
-			icon: <Icons.CalendarDots size={21} color={colors.white} weight="fill" />,
+			icon: <Icons.CalendarDots size={21} color={isDark ? colors.neutral100 : colors.neutral900} weight="fill" />,
 			routeName: '/(modals)/calendarModal',
 			bgColor: colors.orange,
 		},
 		{
 			title: 'Конфіденційність',
-			icon: <Icons.Lock size={21} color={colors.white} weight="fill" />,
+			icon: <Icons.Lock size={21} color={isDark ? colors.neutral100 : colors.neutral900} weight="fill" />,
 			routeName: '/(modals)/privacyModal',
-			bgColor: colors.neutral600,
+			bgColor: isDark ? colors.neutral600 : colors.neutral350,
 		},
 		{
 			title: 'Вийти',
-			icon: <Icons.Power size={21} color={colors.white} weight="fill" />,
+			icon: <Icons.Power size={21} color={isDark ? colors.neutral100 : colors.neutral900} weight="fill" />,
 			bgColor: colors.rose,
 		},
 	];
@@ -139,7 +142,12 @@ const Profile = () => {
 										>
 											{item.icon}
 										</View>
-										<Typo size={16} fontWeight={'500'} style={{ flex: 1 }}>
+										<Typo
+											size={16}
+											fontWeight={'500'}
+											color={colors.neutral100}
+											style={{ flex: 1 }}
+										>
 											{item.title}
 										</Typo>
 										<Icons.CaretRight size={18} weight="bold" color={colors.neutral500} />

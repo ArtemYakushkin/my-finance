@@ -4,9 +4,9 @@ import Loading from '@/components/Loading';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
 import { PlannedTransaction } from '@/constants/types';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { cleanupExpiredTransactions } from '@/services/cleanPastTransactions';
 import { getCurrencySymbol } from '@/utils/common';
@@ -51,6 +51,9 @@ const CalendarModal: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 	const { user } = useAuth();
 	const currencySymbol = getCurrencySymbol(user?.currency);
 	const router = useRouter();
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	useEffect(() => {
 		if (user?.uid) {
@@ -142,18 +145,18 @@ const CalendarModal: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 								hideExtraDays={true}
 								theme={{
 									calendarBackground: 'transparent',
-									monthTextColor: colors.white,
+									monthTextColor: colors.neutral100,
 									textMonthFontSize: 16,
 									textMonthFontWeight: '700',
 									textSectionTitleColor: colors.neutral400,
 									textDayHeaderFontSize: 12,
 									textDayHeaderFontWeight: '600',
-									dayTextColor: colors.white,
+									dayTextColor: colors.neutral100,
 									textDayFontSize: 13,
 									textDayFontWeight: '700',
 									todayTextColor: colors.primaryLight,
 									selectedDayBackgroundColor: colors.primaryLight,
-									selectedDayTextColor: colors.white,
+									selectedDayTextColor: colors.neutral100,
 								}}
 								renderArrow={(direction) =>
 									direction === 'left' ? (
@@ -197,7 +200,7 @@ const CalendarModal: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 									<View style={{ gap: 5 }}>
 										<View style={globalStyles.incomeExpenseCard}>
 											<View style={globalStyles.statsIconCard}>
-												<Icons.ArrowUp size={15} color={colors.black} weight="bold" />
+												<Icons.ArrowUp size={15} color={colors.neutral900} weight="bold" />
 											</View>
 											<Typo size={16} fontWeight={'500'} color={colors.neutral300}>
 												Дохід
@@ -213,7 +216,7 @@ const CalendarModal: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 									<View style={{ gap: 5 }}>
 										<View style={globalStyles.incomeExpenseCard}>
 											<View style={globalStyles.statsIconCard}>
-												<Icons.ArrowDown size={15} color={colors.black} weight="bold" />
+												<Icons.ArrowDown size={15} color={colors.neutral900} weight="bold" />
 											</View>
 											<Typo size={16} fontWeight={'500'} color={colors.neutral300}>
 												Витрати
@@ -245,7 +248,7 @@ const CalendarModal: React.FC<PlannerProps> = ({ onEdit, onDelete }) => {
 										>
 											<View style={globalStyles.transRow}>
 												<View style={globalStyles.transCategoryDes}>
-													<Typo size={16} fontWeight={'600'} color={colors.white}>
+													<Typo size={16} fontWeight={'600'} color={colors.neutral100}>
 														{item.title}
 													</Typo>
 													<Typo size={12} color={colors.neutral400}>

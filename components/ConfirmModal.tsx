@@ -1,6 +1,6 @@
-import { globalStyles } from '@/constants/global';
-import { INPUT_GRADIENT } from '@/constants/gradient';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { getGradients } from '@/constants/gradient';
+import { useTheme } from '@/context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Modal, View } from 'react-native';
 import Button from './Button';
@@ -25,6 +25,10 @@ export const ConfirmModal = ({
 	onConfirm,
 	onCancel,
 }: ConfirmModalProps) => {
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+	const { INPUT_GRADIENT } = getGradients(colors);
+
 	return (
 		<Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel}>
 			<View style={globalStyles.confOverlay}>

@@ -3,8 +3,8 @@ import HomeCard from '@/components/HomeCard';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import TransactionList from '@/components/TransactionList';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import useFetchData from '@/hooks/useFetchData';
 import { CurrencyItem, fetchPopularRates, getFlagUrl } from '@/services/nbuApi';
@@ -18,7 +18,8 @@ import { Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
 const Home = () => {
 	const { user } = useAuth();
 	const router = useRouter();
-
+	const { isDark, toggleTheme, colors } = useTheme();
+	const globalStyles = getGlobalStyles(colors);
 	const [usdData, setUsdData] = useState<CurrencyItem | null>(null);
 
 	useEffect(() => {
@@ -62,6 +63,8 @@ const Home = () => {
 						position: 'absolute',
 						bottom: 32,
 						right: 12,
+						borderWidth: 0.8,
+						borderRadius: 12,
 					}}
 					onPress={() => router.push('/(modals)/transactionModal')}
 				>
@@ -94,10 +97,10 @@ const Home = () => {
 								contentFit="cover"
 							/>
 							<View>
-								<Typo size={12} color={colors.neutral400}>
+								<Typo size={12} color={isDark ? colors.neutral400 : colors.neutral350}>
 									{usdData.txt}
 								</Typo>
-								<Typo size={14} fontWeight="500" color={colors.white}>
+								<Typo size={14} fontWeight="500" color={colors.neutral200}>
 									{usdData.buyRate.toFixed(2)} / {usdData.sellRate.toFixed(2)}
 								</Typo>
 							</View>
@@ -105,9 +108,13 @@ const Home = () => {
 					)}
 
 					<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-						<Pressable onPress={() => router.push('/(modals)/searchModal')} style={globalStyles.actionIcon}>
-							<Icons.Moon size={20} color={colors.neutral200} weight="bold" />
-						</Pressable>
+						<TouchableOpacity onPress={toggleTheme} style={globalStyles.actionIcon}>
+							{isDark ? (
+								<Icons.Sun size={20} color={colors.neutral200} weight="bold" />
+							) : (
+								<Icons.Moon size={20} color={colors.neutral200} weight="bold" />
+							)}
+						</TouchableOpacity>
 
 						<Pressable onPress={() => router.push('/(modals)/searchModal')} style={globalStyles.actionIcon}>
 							<Icons.MagnifyingGlass size={20} color={colors.neutral200} weight="bold" />

@@ -1,5 +1,5 @@
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { IconProps } from 'phosphor-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import Typo from './Typo';
@@ -15,6 +15,9 @@ interface CalcButtonProps {
 }
 
 const CalcButton = ({ text, icon: Icon, onPress, isDone, isEqual, isDouble, isOperator }: CalcButtonProps) => {
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+
 	let textColor = colors.neutral100;
 	let textSize = 20;
 

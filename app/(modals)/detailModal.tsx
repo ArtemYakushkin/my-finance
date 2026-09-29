@@ -4,9 +4,9 @@ import { ConfirmModal } from '@/components/ConfirmModal';
 import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
 import { categoryGroups, TransactionType } from '@/constants/types';
+import { useTheme } from '@/context/ThemeContext';
 import { transactionService } from '@/services/transactionService';
 import { showErrorToast, showSuccessToast } from '@/utils/showToast';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,6 +17,9 @@ import { ScrollView, View } from 'react-native';
 const DetailModal = () => {
 	const router = useRouter();
 	const params = useLocalSearchParams<{ txData?: string; categories?: string; wallets?: string }>();
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const [transaction, setTransaction] = useState<TransactionType | null>(null);
 	const [categories, setCategories] = useState<any[]>([]);

@@ -5,8 +5,9 @@ import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+// import { colors } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { showErrorToast, showWarningToast } from '@/utils/showToast';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,12 +15,6 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
 import { useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-
-const categoryGroups = [
-	{ label: 'База', value: 'needs', color: colors.primary },
-	{ label: 'Хочу', value: 'desires', color: colors.rose },
-	{ label: 'Резерв', value: 'saving', color: colors.primaryLight },
-];
 
 // Список доступных иконок для финансовых категорий
 const CATEGORY_ICONS = [
@@ -114,6 +109,15 @@ const AddCategoryModal = () => {
 		type: type || 'expense',
 		group: group || 'needs',
 	});
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
+
+	const categoryGroups = [
+		{ label: 'База', value: 'needs', color: colors.primary },
+		{ label: 'Хочу', value: 'desires', color: colors.rose },
+		{ label: 'Резерв', value: 'saving', color: colors.primaryLight },
+	];
 
 	const handleSaveCategory = async () => {
 		if (!category.name.trim()) {

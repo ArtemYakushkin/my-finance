@@ -1,4 +1,5 @@
 import { colors } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { Text, TextProps, TextStyle } from 'react-native';
 
 type TypoProps = {
@@ -10,14 +11,8 @@ type TypoProps = {
 	textProps?: TextProps;
 };
 
-const Typo = ({
-	size,
-	color = colors.text,
-	fontWeight = '400',
-	children,
-	style,
-	textProps = {},
-}: TypoProps) => {
+const Typo = ({ size, color = colors.neutral100, fontWeight = '400', children, style, textProps = {} }: TypoProps) => {
+	const { isDark } = useTheme();
 	const textStyle: TextStyle = {
 		fontSize: size ? size : 18,
 		color,

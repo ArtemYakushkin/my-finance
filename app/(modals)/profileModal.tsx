@@ -4,8 +4,8 @@ import Header from '@/components/Header';
 import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { getProfileImage } from '@/services/imageService';
 import { showErrorToast, showWarningToast } from '@/utils/showToast';
@@ -24,6 +24,8 @@ type UserDataType = {
 const ProfileModal = () => {
 	const { user, updateUser } = useAuth();
 	const router = useRouter();
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 	const [userData, setUserData] = useState<UserDataType>({
 		name: '',
 		image: null,
@@ -64,7 +66,9 @@ const ProfileModal = () => {
 		setLoading(false);
 
 		if (res.success) {
-			router.replace('/(tabs)/profile');
+			if (router.canGoBack()) {
+				router.back();
+			}
 		} else {
 			showErrorToast(res.msg || 'Помилка оновлення');
 		}
@@ -84,7 +88,7 @@ const ProfileModal = () => {
 							transition={150}
 						/>
 						<TouchableOpacity onPress={onPickImage} style={globalStyles.modalEditIcon} activeOpacity={0.7}>
-							<Icons.Pencil size={20} color={colors.neutral800} />
+							<Icons.Pencil size={20} color={isDark ? colors.neutral800 : colors.neutral300} />
 						</TouchableOpacity>
 					</View>
 

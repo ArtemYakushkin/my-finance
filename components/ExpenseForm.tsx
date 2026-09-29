@@ -1,6 +1,6 @@
 import { FormRefActions } from '@/app/(modals)/transactionModal';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { transactionService } from '@/services/transactionService';
 import { showErrorToast, showWarningToast } from '@/utils/showToast';
@@ -65,6 +65,9 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 	const [scrollOffset, setScrollOffset] = useState(0);
 	const [contentWidth, setContentWidth] = useState(0);
 	const [containerWidth, setContainerWidth] = useState(0);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const resetForm = () => {
 		setWalletId('');
@@ -332,6 +335,7 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 											{IconComponent ? (
 												<IconComponent
 													size={24}
+													weight={isActive ? 'fill' : 'bold'}
 													color={isActive ? colors.primaryLight : colors.neutral400}
 												/>
 											) : null}
@@ -389,7 +393,9 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 					<View style={globalStyles.modalInputContainer}>
 						<View style={globalStyles.modalInputInner}>
 							<Pressable style={globalStyles.modalInput} onPress={() => setShowDatePicker(true)}>
-								<Typo size={14}>{date.toLocaleDateString('uk-UA')}</Typo>
+								<Typo size={14} color={colors.neutral100}>
+									{date.toLocaleDateString('uk-UA')}
+								</Typo>
 							</Pressable>
 						</View>
 					</View>
@@ -403,7 +409,9 @@ const ExpenseForm = forwardRef<FormRefActions, Props>(({ wallets, categories = [
 					<View style={globalStyles.modalInputContainer}>
 						<View style={globalStyles.modalInputInner}>
 							<Pressable style={globalStyles.modalInput} onPress={() => setShowCalcModal(true)}>
-								<Typo size={14}>{amount === 0 ? 'Ввести суму' : `${amount}`}</Typo>
+								<Typo size={14} color={colors.neutral100}>
+									{amount === 0 ? 'Ввести суму' : `${amount}`}
+								</Typo>
 							</Pressable>
 						</View>
 					</View>

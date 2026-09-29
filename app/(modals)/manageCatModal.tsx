@@ -4,9 +4,9 @@ import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
 import { categoryGroups } from '@/constants/types';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import useFetchData from '@/hooks/useFetchData';
 import { deleteCategoryAndRefundBalance } from '@/services/categoriesService';
@@ -33,6 +33,9 @@ const ManageCategoriesModal = () => {
 	const [keyboardHeight, setKeyboardHeight] = useState(0);
 	const [confirmVisible, setConfirmVisible] = useState(false);
 	const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const { data: firebaseCategories } = useFetchData<CategoryItem>(
 		'categories',
@@ -113,7 +116,7 @@ const ManageCategoriesModal = () => {
 							returnKeyType="done"
 						/>
 					) : (
-						<Typo color={colors.white} size={15}>
+						<Typo color={colors.neutral100} size={15}>
 							{item.name}
 						</Typo>
 					)}

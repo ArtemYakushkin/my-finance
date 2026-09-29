@@ -2,8 +2,8 @@ import BackButton from '@/components/BackButton';
 import Header from '@/components/Header';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 
@@ -11,6 +11,9 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
 const MonthModal = () => {
 	const { user, updateUser } = useAuth();
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const handleStartDayChange = async (day: number) => {
 		if (!user?.uid) return;
@@ -38,7 +41,7 @@ const MonthModal = () => {
 									>
 										<Typo
 											fontWeight={isSelected ? '700' : '400'}
-											color={isSelected ? colors.black : colors.neutral200}
+											color={isSelected ? colors.neutral900 : colors.neutral200}
 										>
 											{day}
 										</Typo>

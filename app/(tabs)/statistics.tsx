@@ -1,9 +1,9 @@
 import Header from '@/components/Header';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
 import { categoryGroups } from '@/constants/types';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { fetchCategories, fetchMonthStats, fetchYearStats } from '@/services/transactionService';
 import { getCurrencySymbol } from '@/utils/common';
@@ -48,6 +48,9 @@ const Statistics = () => {
 		stats: [],
 		transactions: [],
 	});
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	useEffect(() => {
 		const loadUserCategories = async () => {
@@ -212,7 +215,7 @@ const Statistics = () => {
 								>
 									{activeIndex === index ? (
 										<View style={globalStyles.statSegmentActive}>
-											<Typo size={13} fontWeight={'500'} color={colors.neutral50}>
+											<Typo size={13} fontWeight={'500'} color={colors.neutral100}>
 												{label}
 											</Typo>
 										</View>
@@ -230,7 +233,12 @@ const Statistics = () => {
 						<TouchableOpacity onPress={() => handleMoveDate(-1)}>
 							<CaretLeft size={22} color={colors.neutral200} weight="bold" />
 						</TouchableOpacity>
-						<Typo size={18} fontWeight={'600'} style={{ textTransform: 'capitalize' }}>
+						<Typo
+							size={18}
+							fontWeight={'600'}
+							color={colors.neutral100}
+							style={{ textTransform: 'capitalize' }}
+						>
 							{getPeriodText()}
 						</Typo>
 						<TouchableOpacity onPress={() => handleMoveDate(1)}>
@@ -239,7 +247,7 @@ const Statistics = () => {
 					</View>
 
 					<View style={globalStyles.statPieInner}>
-						<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
+						<Typo size={18} fontWeight={'600'} color={colors.neutral100} style={{ marginBottom: 20 }}>
 							Співвідношення бюджету
 						</Typo>
 						{incomeExpensePieData.length > 0 ? (
@@ -282,9 +290,9 @@ const Statistics = () => {
 											<Typo size={13} color={colors.neutral300}>
 												{item.text}
 											</Typo>
-											<Typo size={13} fontWeight={'700'}>
+											<Typo size={13} fontWeight={'700'} color={colors.neutral300}>
 												{currencySymbol}
-												{item.value.toLocaleString()}
+												{item.value}
 											</Typo>
 										</View>
 									))}
@@ -298,7 +306,7 @@ const Statistics = () => {
 					</View>
 
 					<View style={globalStyles.statPieInner}>
-						<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
+						<Typo size={18} fontWeight={'600'} color={colors.neutral100} style={{ marginBottom: 20 }}>
 							Розподіл витрат
 						</Typo>
 						{pieData.length > 0 ? (
@@ -315,7 +323,7 @@ const Statistics = () => {
 											<Typo size={12} color={colors.neutral400}>
 												Всього
 											</Typo>
-											<Typo size={16} fontWeight={'700'}>
+											<Typo size={16} fontWeight={'700'} color={colors.neutral100}>
 												{currencySymbol}{' '}
 												{pieData.reduce((acc, cur) => acc + cur.value, 0).toLocaleString()}
 											</Typo>
@@ -331,7 +339,7 @@ const Statistics = () => {
 											<Typo size={13} color={colors.neutral300}>
 												{item.text}
 											</Typo>
-											<Typo size={13} fontWeight={'600'}>
+											<Typo size={13} fontWeight={'600'} color={colors.neutral100}>
 												{(
 													(item.value / pieData.reduce((a, b) => a + b.value, 0)) *
 													100
@@ -350,7 +358,7 @@ const Statistics = () => {
 					</View>
 
 					<View style={{ gap: 12 }}>
-						<Typo size={18} fontWeight={'600'} style={{ textAlign: 'center' }}>
+						<Typo size={18} fontWeight={'600'} color={colors.neutral100} style={{ textAlign: 'center' }}>
 							Деталі по категоріях
 						</Typo>
 						{subCategories.map((item, index) => {
@@ -360,13 +368,17 @@ const Statistics = () => {
 								<View style={globalStyles.statCategoryCard} key={index}>
 									<View style={globalStyles.statCategoryInfo}>
 										<View style={[globalStyles.statIconWrapper, { backgroundColor: item.color }]}>
-											<IconComponent size={20} weight="fill" color={colors.white} />
+											<IconComponent
+												size={20}
+												weight="fill"
+												color={isDark ? colors.neutral100 : colors.neutral900}
+											/>
 										</View>
-										<Typo size={16} fontWeight={'500'}>
+										<Typo size={16} fontWeight={'500'} color={colors.neutral100}>
 											{item.name}
 										</Typo>
 									</View>
-									<Typo size={16} fontWeight={'700'}>
+									<Typo size={16} fontWeight={'700'} color={colors.neutral100}>
 										{currencySymbol}
 										{item.amount.toLocaleString()}
 									</Typo>

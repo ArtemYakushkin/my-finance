@@ -8,8 +8,9 @@ import ModalWrapper from '@/components/ModalWrapper';
 import TransferForm from '@/components/TransferForm';
 import Typo from '@/components/Typo';
 import { db } from '@/config/firebase';
-import { globalStyles } from '@/constants/global';
+import { getGlobalStyles } from '@/constants/global';
 import { colors } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
@@ -57,6 +58,9 @@ const TransactionModal = () => {
 
 	const [parsedOldData, setParsedOldData] = useState<any>(null);
 	const [activeType, setActiveType] = useState<string>('expense');
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	useEffect(() => {
 		if (params?.editData) {
@@ -221,7 +225,7 @@ const TransactionModal = () => {
 								<View style={globalStyles.statSegmentWrap}>
 									{transactionTypes.map((item) => {
 										const isActive = activeType === item.value;
-										const activeTextColor = transactionColors[item.value] || colors.white;
+										const activeTextColor = transactionColors[item.value] || colors.neutral100;
 										return (
 											<TouchableOpacity
 												key={item.value}

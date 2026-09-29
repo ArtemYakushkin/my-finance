@@ -5,8 +5,8 @@ import Header from '@/components/Header';
 import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { globalStyles } from '@/constants/global';
-import { colors } from '@/constants/theme';
+import { getGlobalStyles } from '@/constants/global';
+import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/useAuth';
 import useFetchData from '@/hooks/useFetchData';
 import { createWallet, deleteWalletWithTransfer, updateWallet } from '@/services/walletService';
@@ -44,6 +44,9 @@ const WalletModal = () => {
 	const [confirmVisible, setConfirmVisible] = useState(false);
 	const [targetWallet, setTargetWallet] = useState<WalletType | null>(null);
 	const [isExcludedFromTotal, setIsExcludedFromTotal] = useState(false);
+
+	const { colors, isDark } = useTheme();
+	const globalStyles = getGlobalStyles(colors, isDark);
 
 	const { data: allWallets } = useFetchData<WalletType>(
 		'wallets',
